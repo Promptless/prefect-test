@@ -152,9 +152,6 @@ print(my_flow())  # Output: Failed(message='Flow failed due to task failure')
 </CodeGroup>
 
 Choose the strategy that best fits your specific use case and error handling requirements.
-
------
-
 ### Futures interface
 
 <info>
@@ -193,24 +190,24 @@ For example, `Block`'s `load` method is asynchronous in an async context:
 from prefect.blocks.system import Secret
 
 async def my_async_function():
-    my_secret = Secret.load("my-secret")
-    print(my_secret.get()) # AttributeError: 'coroutine' object has no attribute 'get'
+my_secret = Secret.load("my-secret")
+print(my_secret.get()) # AttributeError: 'coroutine' object has no attribute 'get'
 ```
 
 ```python Correct
 from prefect.blocks.system import Secret
 
 async def my_async_function():
-    my_secret = await Secret.load("my-secret")
-    print(my_secret.get()) # This will work
+my_secret = await Secret.load("my-secret")
+print(my_secret.get()) # This will work
 ```
 
 ```python Also Correct
 from prefect.blocks.system import Secret
 
 async def my_async_function():
-    my_secret = Secret.load("my-secret", _sync=True)
-    print(my_secret.get()) # This will work
+my_secret = Secret.load("my-secret", _sync=True)
+print(my_secret.get()) # This will work
 ```
 
 </CodeGroup>
@@ -239,11 +236,11 @@ from prefect import flow, task
 
 @task
 async def my_task():
-    pass
+pass
 
 @flow
 async def my_flow():
-    future = await my_task.submit() # TypeError: object PrefectConcurrentFuture can't be used in 'await' expression
+future = await my_task.submit() # TypeError: object PrefectConcurrentFuture can't be used in 'await' expression
 ```
 
 ```python Correct
@@ -251,50 +248,12 @@ from prefect import flow, task
 
 @task
 async def my_task():
-    pass
+pass
 
 @flow
 async def my_flow():
-    future = my_task.submit() # This will work
+future = my_task.submit() # This will work
 ```
 </CodeGroup>
 
 See the [Futures interface section](#futures-interface) for more information on this particular gotcha.
-
-#### `TypeError: Flow.deploy() got an unexpected keyword argument 'schedule'`
-
-In Prefect 3.0, the `schedule` argument has been removed in favor of the `schedules` argument.
-
-This applies to both the `Flow.serve` and `Flow.deploy` methods.
-
-<CodeGroup>
-```python Prefect 2.0 {11}
-from datetime import timedelta
-from prefect import flow
-from prefect.client.schemas.schedules import IntervalSchedule
-
-@flow
-def my_flow():
-    pass
-
-my_flow.serve(
-    name="my-flow",
-    schedule=IntervalSchedule(interval=timedelta(minutes=1))
-)
-```
-
-```python Prefect 3.0 {11}
-from datetime import timedelta
-from prefect import flow
-from prefect.client.schemas.schedules import IntervalSchedule
-
-@flow
-def my_flow():
-    pass
-
-my_flow.serve(
-    name="my-flow",
-    schedules=[IntervalSchedule(interval=timedelta(minutes=1))]
-)
-```
-</CodeGroup>

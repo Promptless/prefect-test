@@ -20,16 +20,16 @@ from prefect_dask import DaskTaskRunner
 
 @task
 def shout(number):
-    time.sleep(0.5)
-    print(f"#{number}")
+time.sleep(0.5)
+print(f"#{number}")
 
 @flow(task_runner=DaskTaskRunner)
 def count_to(highest_number):
-    for number in range(highest_number):
-        shout.submit(number)
+for number in range(highest_number):
+shout.submit(number)
 
 if __name__ == "__main__":
-    count_to(10)
+count_to(10)
 
 # outputs
 #3
@@ -60,7 +60,7 @@ from prefect_dask.task_runners import DaskTaskRunner
 
 @flow(task_runner=DaskTaskRunner(address="http://my-dask-cluster"))
 def my_flow():
-    ...
+...
 ```
 
 `DaskTaskRunner` accepts the following optional parameters:
@@ -88,7 +88,7 @@ from prefect_dask import DaskTaskRunner
 
 # Use 4 worker processes, each with 2 threads
 DaskTaskRunner(
-    cluster_kwargs={"n_workers": 4, "threads_per_worker": 2}
+cluster_kwargs={"n_workers": 4, "threads_per_worker": 2}
 )
 ```
 
@@ -106,7 +106,7 @@ def compute_task():
     with get_dask_client() as client:
         df = dask.datasets.timeseries("2000", "2001", partition_freq="4w")
         summary_df = df.describe().compute()
-    return summary_df
+        return summary_df
 
 @flow(task_runner=DaskTaskRunner())
 def dask_flow():
@@ -155,7 +155,7 @@ async def compute_task():
     async with get_async_dask_client() as client:
         df = dask.datasets.timeseries("2000", "2001", partition_freq="4w")
         summary_df = await client.compute(df.describe())
-    return summary_df
+        return summary_df
 
 @flow(task_runner=DaskTaskRunner())
 async def dask_flow():
@@ -174,7 +174,6 @@ However, you must `await client.compute(dask_collection)` before exiting the con
 
 To invoke `compute` from the Dask collection, set `sync=False` and call `result()` before exiting out of the context manager: `await dask_collection.compute(sync=False)`.
 </Warning>
-
 ## Use a temporary cluster
 
 The `DaskTaskRunner` is capable of creating a temporary cluster using any of [Dask's cluster-manager options](https://docs.dask.org/en/latest/setup.html). This can be useful when you want each flow run to have its own Dask cluster, allowing for per-flow adaptive scaling.
@@ -191,8 +190,8 @@ For example, to configure a flow to use a temporary `dask_cloudprovider.aws.Farg
 
 ```python
 DaskTaskRunner(
-    cluster_class="dask_cloudprovider.aws.FargateCluster",
-    cluster_kwargs={"n_workers": 4, "image": "my-prefect-image"},
+cluster_class="dask_cloudprovider.aws.FargateCluster",
+cluster_kwargs={"n_workers": 4, "image": "my-prefect-image"},
 )
 ```
 
@@ -225,8 +224,8 @@ For example, here we configure a flow to run on a `FargateCluster` scaling up to
 
 ```python
 DaskTaskRunner(
-    cluster_class="dask_cloudprovider.aws.FargateCluster",
-    adapt_kwargs={"maximum": 10}
+cluster_class="dask_cloudprovider.aws.FargateCluster",
+adapt_kwargs={"maximum": 10}
 )
 ```
 
@@ -243,16 +242,16 @@ from prefect_dask.task_runners import DaskTaskRunner
 
 @task
 def show(x):
-    print(x)
+print(x)
 
 
 @flow(task_runner=DaskTaskRunner())
 def my_flow():
-    with dask.annotate(priority=-10):
-        future = show(1)  # low priority task
+with dask.annotate(priority=-10):
+future = show(1)  # low priority task
 
-    with dask.annotate(priority=10):
-        future = show(2)  # high priority task
+with dask.annotate(priority=10):
+future = show(2)  # high priority task
 ```
 
 Another common use case is [resource](http://distributed.dask.org/en/stable/resources.html) annotations:
@@ -264,25 +263,25 @@ from prefect_dask.task_runners import DaskTaskRunner
 
 @task
 def show(x):
-    print(x)
+print(x)
 
 # Create a `LocalCluster` with some resource annotations
 # Annotations are abstract in dask and not inferred from your system.
 # Here, we claim that our system has 1 GPU and 1 process available per worker
 @flow(
-    task_runner=DaskTaskRunner(
-        cluster_kwargs={"n_workers": 1, "resources": {"GPU": 1, "process": 1}}
-    )
+task_runner=DaskTaskRunner(
+cluster_kwargs={"n_workers": 1, "resources": {"GPU": 1, "process": 1}}
+)
 )
 def my_flow():
-    with dask.annotate(resources={'GPU': 1}):
-        future = show(0)  # this task requires 1 GPU resource on a worker
+with dask.annotate(resources={'GPU': 1}):
+future = show(0)  # this task requires 1 GPU resource on a worker
 
-    with dask.annotate(resources={'process': 1}):
-        # These tasks each require 1 process on a worker; because we've
-        # specified that our cluster has 1 process per worker and 1 worker,
-        # these tasks will run sequentially
-        future = show(1)
-        future = show(2)
-        future = show(3)
+with dask.annotate(resources={'process': 1}):
+# These tasks each require 1 process on a worker; because we've
+# specified that our cluster has 1 process per worker and 1 worker,
+# these tasks will run sequentially
+future = show(1)
+future = show(2)
+future = show(3)
 ```
