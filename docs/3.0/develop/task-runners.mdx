@@ -58,19 +58,19 @@ import time
 
 @task
 def stop_at_floor(floor):
-    print(f"elevator moving to floor {floor}")
-    time.sleep(floor)
-    print(f"elevator stops on floor {floor}")
+print(f"elevator moving to floor {floor}")
+time.sleep(floor)
+print(f"elevator stops on floor {floor}")
 
 
 @flow(task_runner=ThreadPoolTaskRunner(max_workers=3))
 def elevator():
-    floors = []
+floors = []
 
-    for floor in range(10, 0, -1):
-        floors.append(stop_at_floor.submit(floor))
+for floor in range(10, 0, -1):
+floors.append(stop_at_floor.submit(floor))
 
-    wait(floors)
+wait(floors)
 ```
 
 <Tip>
@@ -162,7 +162,6 @@ def my_flow():
         ...
 ```
 
-
 You may also use the [`wait_for=[]`](https://prefect-python-sdk-docs.netlify.app/prefect/tasks/#prefect.tasks.Task.submit) parameter 
 when calling a task by specifying upstream task dependencies. This enables you to control task execution 
 order for tasks that do not share data dependencies.
@@ -179,7 +178,7 @@ def task_b():
 @task
 def task_c():
     pass
-    
+
 @task
 def task_d():
     pass
@@ -203,8 +202,8 @@ This means that calling `.result()` will wait until the task run completes befor
 - Only use `.result()` when you need to interact directly with the return value of your submitted task;
 for example, you should use `.result()` if passing the return value to a standard Python function (not a 
 Prefect task) but _not_ if you are passing the value to another task.
+- In an async context, ensure you are awaiting the call to `.result()`.
 </Note>
-
 ## Mapping over iterables
 
 Prefect also provides a `.map()` method that automatically submits a new task run for each element of its 
@@ -216,18 +215,18 @@ from prefect import flow, task
 
 @task
 def print_nums(nums):
-    for n in nums:
-        print(n)
+for n in nums:
+print(n)
 
 @task
 def square_num(num):
-    return num**2
+return num**2
 
 @flow
 def map_flow(nums):
-    print_nums(nums)
-    squared_nums = square_num.map(nums) 
-    print_nums(squared_nums)
+print_nums(nums)
+squared_nums = square_num.map(nums)
+print_nums(squared_nums)
 
 map_flow([1,2,3,5,8,13])
 ```
@@ -239,12 +238,12 @@ from prefect import flow, task
 
 @task
 def add_together(x, y):
-    return x + y
+return x + y
 
 @flow
 def sum_it(numbers, static_value):
-    futures = add_together.map(numbers, static_value)
-    return futures.result()
+futures = add_together.map(numbers, static_value)
+return futures.result()
 
 resulting_sum = sum_it([1, 2, 3], 5)
 assert resulting_sum == [6, 7, 8]
@@ -277,12 +276,12 @@ from prefect import flow, task, unmapped
 
 @task
 def sum_plus(x, static_iterable):
-    return x + sum(static_iterable)
+return x + sum(static_iterable)
 
 @flow
 def sum_it(numbers, static_iterable):
-    futures = sum_plus.map(numbers, unmapped(static_iterable))
-    return futures.result()
+futures = sum_plus.map(numbers, unmapped(static_iterable))
+return futures.result()
 
 resulting_sum = sum_it([4, 5, 6], [1, 2, 3])
 assert resulting_sum == [10, 11, 12]
@@ -305,33 +304,33 @@ import time
 
 @task
 def hello_local(name: str):
-    time.sleep(2)
-    print(f"Hello {name}!")
+time.sleep(2)
+print(f"Hello {name}!")
 
 
 @flow # implicitly uses the default task runner, ThreadPoolTaskRunner
 def concurrent_nested_flow():
-    marvin = hello_local.submit("marvin")
-    ford = hello_local.submit("ford")
-    marvin.wait(), ford.wait()
+marvin = hello_local.submit("marvin")
+ford = hello_local.submit("ford")
+marvin.wait(), ford.wait()
 
 
 @task
 def hello_dask():
-    print("Hello from Dask!")
+print("Hello from Dask!")
 
 
 @flow(task_runner=DaskTaskRunner())
 def dask_nested_flow():
-    hello_dask.submit().wait()
+hello_dask.submit().wait()
 
 
 @flow # implicitly uses the default task runner, ThreadPoolTaskRunner
 def parent_flow():
-    concurrent_nested_flow()
-    dask_nested_flow()
+concurrent_nested_flow()
+dask_nested_flow()
 
 
 if __name__ == "__main__":
-    parent_flow()
+parent_flow()
 ```
