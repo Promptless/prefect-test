@@ -319,7 +319,7 @@ class DaskTaskRunner(TaskRunner):
         self,
         task: "Task[P, Coroutine[Any, Any, R]]",
         parameters: Dict[str, Any],
-        wait_for: Optional[Iterable[PrefectDaskFuture[R]]] = None,
+        wait_for: Optional[Iterable[PrefectFuture]] = None,
         dependencies: Optional[Dict[str, Set[TaskRunInput]]] = None,
     ) -> PrefectDaskFuture[R]:
         ...
@@ -329,26 +329,26 @@ class DaskTaskRunner(TaskRunner):
         self,
         task: "Task[Any, R]",
         parameters: Dict[str, Any],
-        wait_for: Optional[Iterable[PrefectDaskFuture[R]]] = None,
+        wait_for: Optional[Iterable[PrefectFuture]] = None,
         dependencies: Optional[Dict[str, Set[TaskRunInput]]] = None,
     ) -> PrefectDaskFuture[R]:
         ...
 
     def submit(
         self,
-        task: "Union[Task[P, R], Task[P, Coroutine[Any, Any, R]]]",
+        task: Task,
         parameters: Dict[str, Any],
-        wait_for: Optional[Iterable[PrefectDaskFuture[R]]] = None,
+        wait_for: Optional[Iterable[PrefectFuture]] = None,
         dependencies: Optional[Dict[str, Set[TaskRunInput]]] = None,
-    ) -> PrefectDaskFuture[R]:
+    ) -> PrefectDaskFuture:
         if not self._started:
             raise RuntimeError(
                 "The task runner must be started before submitting work."
             )
 
-        # Convert both parameters and wait_for futures to Dask futures
+        # unpack the upstream call in order to cast Prefect futures to Dask futures
+        # where possible to optimize Dask task scheduling
         parameters = self._optimize_futures(parameters)
-        wait_for = self._optimize_futures(wait_for) if wait_for else None
 
         future = self._client.submit(
             task,
@@ -357,9 +357,7 @@ class DaskTaskRunner(TaskRunner):
             dependencies=dependencies,
             return_type="state",
         )
-        return PrefectDaskFuture[R](
-            wrapped_future=future, task_run_id=future.task_run_id
-        )
+        return PrefectDaskFuture(wrapped_future=future, task_run_id=future.task_run_id)
 
     @overload
     def map(

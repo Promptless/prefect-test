@@ -51,6 +51,7 @@ from prefect.settings import (
     PREFECT_API_SERVICES_TASK_RUN_RECORDER_ENABLED,
     PREFECT_API_SERVICES_TRIGGERS_ENABLED,
     PREFECT_API_URL,
+    PREFECT_ASYNC_FETCH_STATE_RESULT,
     PREFECT_CLI_COLORS,
     PREFECT_CLI_WRAP_LINES,
     PREFECT_HOME,
@@ -322,6 +323,7 @@ def pytest_sessionstart(session):
             PREFECT_CLI_COLORS: False,
             PREFECT_CLI_WRAP_LINES: False,
             # Enable future change
+            PREFECT_ASYNC_FETCH_STATE_RESULT: True,
             # Enable debug logging
             PREFECT_LOGGING_LEVEL: "DEBUG",
             PREFECT_LOGGING_INTERNAL_LEVEL: "DEBUG",

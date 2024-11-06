@@ -69,10 +69,6 @@ handlers:
     class: logging.StreamHandler
     formatter: debug
 
-  worker_api:
-    level: 0
-    class: prefect.logging.handlers.WorkerAPILogHandler
-
 loggers:
   prefect:
     level: "${PREFECT_LOGGING_LEVEL}"
@@ -89,10 +85,6 @@ loggers:
   prefect.task_runs:
     level: NOTSET
     handlers: [api]
-
-  prefect.workers:
-    level: NOTSET
-    handlers: [worker_api]
 
   prefect.server:
     level: "${PREFECT_SERVER_LOGGING_LEVEL}"
