@@ -26,14 +26,13 @@ See [settings](/3.0/manage/settings-and-profiles) for more information on how se
 
 There are four categories of configuration for result persistence:
 - [whether to persist results at all](/3.0/develop/results#enabling-result-persistence): this is configured through
-various keyword arguments and the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting.
+various keyword arguments and the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting. Additionally, you can control task-specific persistence using the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` setting, which allows you to enable or disable result persistence for tasks independently of flows.
 - [what filesystem to persist results to](/3.0/develop/results#result-storage): this is configured through the `result_storage`
 keyword and the `PREFECT_DEFAULT_RESULT_STORAGE_BLOCK` setting.
 - [how to serialize and deserialize results](/3.0/develop/results#result-serialization): this is configured through
 the `result_serializer` keyword and the `PREFECT_RESULTS_DEFAULT_SERIALIZER` setting.
 - [what filename to use](/3.0/develop/results#result-filenames): this is configured through one of
 `result_storage_key`, `cache_policy`, or `cache_key_fn`.
-
 ### Default persistence configuration
 
 Once result persistence is enabled - whether through the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting or
@@ -49,6 +48,12 @@ You can configure the location of these results through the `PREFECT_LOCAL_STORA
 prefect config set PREFECT_LOCAL_STORAGE_PATH='~/.my-results/'
 ```
 
+Additionally, you can control result persistence separately for tasks and flows using the following settings:
+
+- `PREFECT_TASKS_DEFAULT_PERSIST_RESULT`: If set to `True`, results will be persisted by default for all tasks. Set to `False` to disable persistence by default for tasks. This setting overrides the behavior set by a parent flow or task.
+- `PREFECT_RESULTS_PERSIST_FLOWS_BY_DEFAULT`: Controls persistence for flows specifically.
+
+These settings allow for more granular control over result persistence, helping to manage memory usage and storage requirements effectively.
 ### Enabling result persistence
 
 In addition to the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting, result persistence can also be
@@ -76,6 +81,7 @@ Any settings _explicitly_ set on a task take precedence over the flow settings.
 
 </Note>
 
+Additionally, you can control task result persistence globally using the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` setting. If set to `True`, results will be persisted by default for all tasks. Set to `False` to disable persistence by default. Note that setting to `False` will override the behavior set by a parent flow or task.
 ### Result storage
 
 You can configure the system of record for your results through the `result_storage` keyword argument.
@@ -84,6 +90,9 @@ Note that if you want your tasks to share a common cache, your result storage sh
 the infrastructure in which those tasks run. [Integrations](/integrations/integrations) have cloud-specific storage blocks.
 For example, a common distributed filesystem for result storage is AWS S3.
 
+You can now also control result persistence behavior separately for tasks and flows using the following environment variables:
+- `PREFECT_RESULTS_PERSIST_TASKS_BY_DEFAULT`: Controls whether results are persisted by default for tasks.
+- `PREFECT_RESULTS_PERSIST_FLOWS_BY_DEFAULT`: Controls whether results are persisted by default for flows.
 
 {/* pmd-metadata: fixture:cleanup_s3_bucket_block */}
 ```python
@@ -168,7 +177,6 @@ def my_flow():
 
 If a result exists at a given storage key in the storage location, the task will load it without running.
 To learn more about caching mechanics in Prefect, see the [caching documentation](/3.0/develop/task-caching).
-
 ### Result serialization
 
 You can configure how results are serialized to storage using result serializers.
