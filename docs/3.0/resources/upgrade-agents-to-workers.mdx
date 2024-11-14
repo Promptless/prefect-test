@@ -29,29 +29,22 @@ from that pool.
 
 ### Workers
 
-- Improved visibility into the status of each worker, including when a worker was started 
-and when it last polled.
+- Improved visibility into the status of each worker, including when a worker was started and when it last polled.
 - Better handling of race conditions for high availability use cases.
 
 ### Work pools
 
-- Work pools allow greater customization and governance of infrastructure parameters for deployments 
-through their [base job template](/3.0/deploy/infrastructure-concepts/work-pools/#base-job-template).
-- Prefect Cloud [push work pools](/3.0/deploy/infrastructure-examples/serverless/) enable flow 
-execution in your cloud provider environment without the need to host a worker.
-- Prefect Cloud [managed work pools](/3.0/deploy/infrastructure-examples/managed/) allow you to run flows on 
-Prefect's infrastructure, without the need to host a worker or configure cloud provider infrastructure.
+- Work pools allow greater customization and governance of infrastructure parameters for deployments through their [base job template](/3.0/deploy/infrastructure-concepts/work-pools/#base-job-template).
+- Prefect Cloud [push work pools](/3.0/deploy/infrastructure-examples/serverless/) enable flow execution in your cloud provider environment without the need to host a worker.
+- Prefect Cloud [managed work pools](/3.0/deploy/infrastructure-examples/managed/) allow you to run flows on Prefect's infrastructure, without the need to host a worker or configure cloud provider infrastructure.
 
 ### Improved deployment interfaces
 
-- The Python deployment experience with `.deploy()` or the alternative deployment experience with 
-`prefect.yaml` are more flexible and easier to use than block and agent-based deployments.
-- Both options allow you to [deploy multiple flows](/3.0/deploy/infrastructure-concepts/prefect-yaml/#work-with-multiple-deployments-with-prefect-yaml) 
-with a single command.
+- The Python deployment experience with `.deploy()` or the alternative deployment experience with `prefect.yaml` are more flexible and easier to use than block and agent-based deployments.
+- Both options allow you to [deploy multiple flows](/3.0/deploy/infrastructure-concepts/prefect-yaml/#work-with-multiple-deployments-with-prefect-yaml) with a single command.
 - Both options allow you to build Docker images for your flows to create portable execution environments.
-- The YAML-based API supports [templating](/3.0/deploy/infrastructure-concepts/prefect-yaml/#templating-options) 
-to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/docker/#reusing-configuration-across-deployments).
-
+- The YAML-based API supports [templating](/3.0/deploy/infrastructure-concepts/prefect-yaml/#templating-options) to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/docker/#reusing-configuration-across-deployments).
+- Deployment logic now includes a check for active workers, omitting setup instructions when active workers are present, enhancing user experience by providing relevant information only.
 ## Upgrade changes
 
 1. **Deployment CLI and Python SDK:**
@@ -88,6 +81,9 @@ to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/doc
     file or use the [`deploy`](/3.0/deploy/infrastructure-examples/docker) 
     function.
 
+5. **Worker Filtering and Deployment Logic:**
+
+    The deployment process now includes a check for active workers in a work pool. If active workers are detected, the system will not display instructions to start a new worker, streamlining the deployment process for users with existing active workers.
 ## What's similar
 
 - You can set storage blocks as the pull action in a `prefect.yaml` file.
@@ -109,26 +105,22 @@ to host workers in your cluster.
 
 ## Upgrade steps
 
-If you have existing deployments that use infrastructure blocks, you can quickly upgrade them to 
-be compatible with workers by following these steps:
+If you have existing deployments that use infrastructure blocks, you can quickly upgrade them to be compatible with workers by following these steps:
 
 1. **[Create a work pool](/3.0/deploy/infrastructure-concepts/work-pools/#work-pool-configuration)**
 
 This new work pool replaces your infrastructure block.
 
-You can use the [`.publish_as_work_pool`](https://docs.prefect.io/2.19.2/api-ref/prefect/infrastructure/#prefect.infrastructure.Infrastructure.publish_as_work_pool) 
-method on any infrastructure block to create a work pool with the same configuration.
+You can use the [`.publish_as_work_pool`](https://docs.prefect.io/2.19.2/api-ref/prefect/infrastructure/#prefect.infrastructure.Infrastructure.publish_as_work_pool) method on any infrastructure block to create a work pool with the same configuration.
 
 {/*
 <!-- vale off -->
 */}
 
-For example, if you have a `KubernetesJob` infrastructure block named 'my-k8s-job', you can 
-create a work pool with the same configuration with this script:
+For example, if you have a `KubernetesJob` infrastructure block named 'my-k8s-job', you can create a work pool with the same configuration with this script:
 
 ```python
 from prefect.infrastructure import KubernetesJob
-
 
 KubernetesJob.load("my-k8s-job").publish_as_work_pool()
 ```
@@ -139,16 +131,11 @@ Running this script creates a work pool named 'my-k8s-job' with the same configu
 <!-- vale on -->
 */}
 
-
 <Tip>
 **Serving flows**
-If you are using a `Process` infrastructure block and a `LocalFilesystem` storage block 
-(or aren't using an infrastructure and storage block at all), you can use [`flow.serve`](/3.0/deploy/index) 
-to create a deployment without specifying a work pool name or start a worker.
+If you are using a `Process` infrastructure block and a `LocalFilesystem` storage block (or aren't using an infrastructure and storage block at all), you can use [`flow.serve`](/3.0/deploy/index) to create a deployment without specifying a work pool name or start a worker.
 
-This is a quick way to create a deployment for a flow and manage your 
-deployments if you don't need the dynamic infrastructure creation or configuration offered 
-by workers.
+This is a quick way to create a deployment for a flow and manage your deployments if you don't need the dynamic infrastructure creation or configuration offered by workers.
 </Tip>
 
 2. **[Start a worker](/3.0/deploy/infrastructure-concepts/workers/#start-a-worker)**
@@ -161,14 +148,16 @@ prefect worker start -p <work pool name>
 
 3. **Deploy your flows to the new work pool**
 
-To deploy your flows to the new work pool, use `flow.deploy` for a Pythonic deployment 
-experience or `prefect deploy` for a YAML-based deployment experience.
+To deploy your flows to the new work pool, use `flow.deploy` for a Pythonic deployment experience or `prefect deploy` for a YAML-based deployment experience.
 
 If you currently use `Deployment.build_from_flow`, we recommend using `flow.deploy`.
 
-If you currently use `prefect deployment build` and `prefect deployment apply`, we recommend 
-using `prefect deploy`.
+If you currently use `prefect deployment build` and `prefect deployment apply`, we recommend using `prefect deploy`.
 
+<Tip>
+**Active Workers Check**
+Before starting a new worker, check if there are active workers in your work pool. If active workers are present, you may not need to start a new worker, simplifying your deployment process.
+</Tip>
 ### Use `flow.deploy`
 
 If you have a Python script that uses `Deployment.build_from_flow` to create a deployment, you

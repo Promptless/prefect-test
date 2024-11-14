@@ -124,14 +124,12 @@ Prefect automatically tracks the state of the flow run and logs the output, whic
 
 ## Create a work pool
 
-Running a flow locally is a good start, but most use cases require a remote execution environment.
-A [work pool](/3.0/deploy/infrastructure-concepts/work-pools/) is the most common interface for deploying flows to remote infrastructure.
+Running a flow locally is a good start, but most use cases require a remote execution environment. A [work pool](/3.0/deploy/infrastructure-concepts/work-pools/) is the most common interface for deploying flows to remote infrastructure.
 
 <Tabs>
   <Tab title="Self-hosted">
 
-Deploy your flow to a self-hosted Prefect server instance using a `Process` work pool.
-All flow runs submitted to this work pool will run in a local subprocess (the mechanics are similar for other work pool types that run on remote infrastructure).
+Deploy your flow to a self-hosted Prefect server instance using a `Process` work pool. All flow runs submitted to this work pool will run in a local subprocess (the mechanics are similar for other work pool types that run on remote infrastructure).
 
 1. Create a `Process` work pool:
 
@@ -164,11 +162,10 @@ Deploy your flow to Prefect Cloud using a managed work pool.
 1. View your new work pool on the **Work Pools** page of the UI.
   </Tab>
 </Tabs>
-  
+
 <Tip>
 You can also choose from other [work pool types](https://docs.prefect.io/concepts/work-pools/#worker-types).
 </Tip>
-
 ## Deploy and schedule your flow
 
 A [deployment](/3.0/deploy/infrastructure-examples/docker/) is used to determine when, where, and how a flow should run.
