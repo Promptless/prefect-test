@@ -52,6 +52,7 @@ with a single command.
 - The YAML-based API supports [templating](/3.0/deploy/infrastructure-concepts/prefect-yaml/#templating-options) 
 to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/docker/#reusing-configuration-across-deployments).
 
+
 ## Upgrade changes
 
 1. **Deployment CLI and Python SDK:**
@@ -87,6 +88,13 @@ to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/doc
     [`prefect.yaml`](/3.0/deploy/infrastructure-concepts/prefect-yaml/#work-with-multiple-deployments-with-prefect-yaml) 
     file or use the [`deploy`](/3.0/deploy/infrastructure-examples/docker) 
     function.
+
+5. **Worker Status Check and Deployment Logic:**
+
+    Prefect now includes a worker status check during the deployment process. If active workers are 
+    detected in a work pool, worker setup instructions will be suppressed, streamlining the deployment 
+    process for users with existing setups. The deployment logic has been enhanced to prevent unnecessary 
+    prompts for starting new workers, enhancing user experience by reducing redundant operations.
 
 ## What's similar
 

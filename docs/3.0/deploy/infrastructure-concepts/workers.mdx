@@ -43,7 +43,6 @@ flowchart TD
 ```
 
 The worker is in charge of provisioning the _flow run infrastructure_.   
-
 ### Worker types
 
 Below is a list of available worker types. Most worker types require installation of an additional package.
@@ -143,6 +142,7 @@ For example, to limit a worker to five concurrent flow runs:
 prefect worker start --pool "my-pool" --limit 5
 ```
 
+If there are already active workers in the work pool, the command will suppress prompts for starting new workers.
 ### Configure prefetch
 
 By default, the worker submits flow runs a short time (10 seconds) before they are scheduled to run. 
