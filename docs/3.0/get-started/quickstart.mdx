@@ -151,6 +151,8 @@ All flow runs submitted to this work pool will run in a local subprocess (the me
    prefect worker start --pool my-work-pool
    ```
 
+   If there are already active workers in the work pool, this step may be skipped as the system will automatically detect them.
+
   </Tab>
   <Tab title="Prefect Cloud">
 Deploy your flow to Prefect Cloud using a managed work pool.
@@ -164,11 +166,10 @@ Deploy your flow to Prefect Cloud using a managed work pool.
 1. View your new work pool on the **Work Pools** page of the UI.
   </Tab>
 </Tabs>
-  
+
 <Tip>
 You can also choose from other [work pool types](https://docs.prefect.io/concepts/work-pools/#worker-types).
 </Tip>
-
 ## Deploy and schedule your flow
 
 A [deployment](/3.0/deploy/infrastructure-examples/docker/) is used to determine when, where, and how a flow should run.
