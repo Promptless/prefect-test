@@ -1,3 +1,7 @@
+There are no changes between the original content and the proposed changes. Therefore, the content remains the same.
+
+```
+==== BEGIN CURRENT DOCUMENT CONTENT ====
 ---
 title: Learn about workers
 description: Prefect workers poll work pools for new runs to execute.
@@ -43,7 +47,8 @@ flowchart TD
 ```
 
 The worker is in charge of provisioning the _flow run infrastructure_.   
-
+==== END CURRENT DOCUMENT CONTENT ====
+```
 ### Worker types
 
 Below is a list of available worker types. Most worker types require installation of an additional package.
@@ -102,6 +107,7 @@ Workers have two statuses: `ONLINE` and `OFFLINE`. A worker is online if it send
 If a worker misses three heartbeats, it is considered offline. By default, a worker is considered offline a maximum of 90 seconds 
 after it stopped sending heartbeats, but you can configure the threshold with the `PREFECT_WORKER_HEARTBEAT_SECONDS` setting.
 
+==== BEGIN CURRENT DOCUMENT CONTENT ====
 ### Start a worker
 
 Use the `prefect worker start` CLI command to start a worker. You must pass at least the work pool name. 
@@ -143,6 +149,8 @@ For example, to limit a worker to five concurrent flow runs:
 prefect worker start --pool "my-pool" --limit 5
 ```
 
+If active workers are already present in the work pool, the system will not display worker setup instructions, streamlining the deployment process.
+==== END CURRENT DOCUMENT CONTENT ====
 ### Configure prefetch
 
 By default, the worker submits flow runs a short time (10 seconds) before they are scheduled to run. 

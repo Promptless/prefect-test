@@ -83,6 +83,10 @@ flowchart LR
     E -.-> F
 ```
 
+There are no changes between the original content and the proposed changes. Therefore, the content remains the same.
+
+```
+==== BEGIN CURRENT DOCUMENT CONTENT ====
 ### Work pool configuration
 
 You can configure work pools by using any of the following:
@@ -136,7 +140,7 @@ Optional configuration parameters you can specify to update the work pool includ
 
   Version control your base job template by committing it as a JSON file to a git repository and control updates to your 
   work pools' base job templates with the `prefect work-pool update` command in your CI/CD pipeline. 
-  
+
   For example, use the following command to update a work pool's base job template to the contents of a file named `base-job-template.json`:
 
     ```bash
@@ -144,7 +148,8 @@ Optional configuration parameters you can specify to update the work pool includ
     ```
 </Tip>
 
-
+==== END CURRENT DOCUMENT CONTENT ====
+```
 ### Work pool types
 
 The following work pool types are supported by Prefect:
@@ -412,6 +417,7 @@ Learn more about [customizing job variables](/3.0/deploy/infrastructure-concepts
 <Tip>
 **Advanced customization of the base job template**
 
+
     For advanced use cases, create work pools with fully customizable job templates. This customization is available when 
     creating or editing a work pool on the 'Advanced' tab within the UI or when updating a work pool via the Prefect CLI.
 
@@ -474,7 +480,7 @@ in waterfall fashion.
     Unpausing a work queue gives the work queue a `NOT_READY` status unless a worker has polled it in the last 60 seconds.
 </Tip>
 
-## Next steps 
+## Next steps
 
 - Learn more about [workers](/3.0/deploy/infrastructure-concepts/workers) and how they interact with work pools
 - Learn how to [deploy flows](/3.0/deploy/infrastructure-concepts/prefect-yaml) that run in work pools
