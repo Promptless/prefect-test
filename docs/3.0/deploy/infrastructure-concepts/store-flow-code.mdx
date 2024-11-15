@@ -143,6 +143,7 @@ If using the Python `deploy` method with a private repository that references a 
   <Tab title="Bitbucket">
     <CodeGroup>
 
+
     ```python bb_no_block.py
     from prefect import flow
 
@@ -279,6 +280,7 @@ If using the Python `deploy` method with a private repository that references a 
     from prefect import flow
     from prefect.runner.storage import GitRepository
     from prefect.blocks.system import Secret
+
 
 
     if __name__ == "__main__":
@@ -544,6 +546,7 @@ We also include Python code that shows how to use an existing storage block and 
 
     To create an `AwsCredentials` block:
 
+
     1. Install the [prefect-aws](/integrations/prefect-aws) library with `pip install -U prefect-aws`
     1. Register the blocks in prefect-aws with `prefect block register -m prefect_aws` 
     1. Create a user with a role with read and write permissions to access the bucket. If using the UI, create an access key pair with *IAM -> Users -> Security credentials -> Access keys -> Create access key*. Choose *Use case -> Other* and then copy the *Access key* and *Secret access key* values.
@@ -564,7 +567,6 @@ We also include Python code that shows how to use an existing storage block and 
         flow.from_source(
             source="az://mycontainer/myfolder",
             entrypoint="my_file.py:my_flow",
-        ).deploy(
             name="my-azure-deployment",
             work_pool_name="my-work-pool",
             job_variables={"env": {"EXTRA_PIP_PACKAGES": "prefect-azure"} }, 
@@ -646,6 +648,7 @@ We also include Python code that shows how to use an existing storage block and 
 
     ```python gcs_no_block.py
     from prefect import flow
+
 
 
     if __name__ == "__main__":
@@ -810,7 +813,7 @@ The exception is when something the server needs to know about has changed, such
 
 Rerun the Python script with `deploy` or run `prefect deploy` from the CLI for YAML-based deployments to update your deployment with the new flow code.
 
-## Flow code storage for deployments created with `serve` 
+## Flow code storage for deployments created with `serve`
 
 The Python `serve` method creates a deployment and a local long-running process to poll for flow runs at the same time.
 
