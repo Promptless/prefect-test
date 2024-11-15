@@ -221,36 +221,6 @@ For reference, the examples below live in their respective branches of
               PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
             run: |
               pip install -r requirements.txt
-              python flow.py
-    ```
-  </Tab>
-</Tabs>
-
-These examples demonstrate how to structure your repository for deploying a Prefect flow using GitHub Actions.
-Ensure that your flow is correctly specified in the `entrypoint` of your Prefect deployment definition, and that any required secrets are stored in your repository's secrets.
-
-
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v4
-
-          - name: Log in to Docker Hub
-            uses: docker/login-action@v3
-            with:
-              username: ${{ secrets.DOCKER_USERNAME }}
-              password: ${{ secrets.DOCKER_PASSWORD }}
-
-          - name: Setup Python
-            uses: actions/setup-python@v5
-            with:
-              python-version: "3.12"
-
-          - name: Prefect Deploy
-            env:
-              PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
-              PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
-            run: |
-              pip install -r requirements.txt
               prefect deploy -n my-deployment
     ```
   </Tab>

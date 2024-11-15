@@ -61,9 +61,6 @@ Below is a list of available worker types. Most worker types require installatio
 If you don't see a worker type that meets your needs, consider 
 [developing a new worker type](/contribute/develop-a-new-worker-type/).
 
-There are no changes between the original content and the proposed changes. Therefore, the content remains the same.
-
-```
 ### Worker options
 
 Workers poll for work from one or more queues within a work pool. If the worker references a work queue that doesn't exist, it is created automatically.
@@ -99,7 +96,6 @@ execute a flow run.
     with the `Worker` role, which you can configure by setting the `PREFECT_API_KEY`.
 </Tip>
 
-```
 ### Worker status
 
 Workers have two statuses: `ONLINE` and `OFFLINE`. A worker is online if it sends regular heartbeat messages to the Prefect API. 
@@ -147,7 +143,6 @@ For example, to limit a worker to five concurrent flow runs:
 prefect worker start --pool "my-pool" --limit 5
 ```
 
-**Note**: The system now checks for active workers in the specified work pool before displaying setup instructions. If active workers are detected, setup instructions may be omitted.
 ### Configure prefetch
 
 By default, the worker submits flow runs a short time (10 seconds) before they are scheduled to run. 
