@@ -143,7 +143,6 @@ For example, to limit a worker to five concurrent flow runs:
 prefect worker start --pool "my-pool" --limit 5
 ```
 
-If the work pool already has active workers, the CLI will not display instructions to start new workers, optimizing the deployment process.
 ### Configure prefetch
 
 By default, the worker submits flow runs a short time (10 seconds) before they are scheduled to run. 
