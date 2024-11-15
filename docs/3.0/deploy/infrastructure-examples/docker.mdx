@@ -1,4 +1,84 @@
-None
+---
+title: Run flows in Docker containers
+description: Learn how to deploy a flow to a Docker work pool with workers
+---
+
+In this example, you will set up:
+
+- a Docker [**work pool**](/3.0/deploy/infrastructure-concepts/work-pools/): stores the infrastructure configuration for your deployment
+- a Docker [**worker**](/3.0/deploy/infrastructure-concepts/workers/): process that polls the Prefect API for flow runs to execute as Docker containers
+- a [**deployment**](/3.0/deploy/index/): a flow that should run according to the configuration on your Docker work pool
+
+Then you can execute your deployment via the Prefect API (through the SDK, CLI, UI, etc).
+
+You must have [Docker](https://docs.docker.com/engine/install/) installed and running on your machine.
+
+<Note>
+**Executing flows in a long-lived container**
+
+This guide shows how to run a flow in an ephemeral container that is removed after the flow run completes.
+To instead learn how to run flows in a static, long-lived container, see [this](/3.0/deploy/static-infrastructure-examples/docker/) guide.
+
+</Note>
+
+### Create a work pool
+
+A work pool provides default infrastructure configurations that all jobs inherit and can override.
+You can adjust many defaults, such as the base Docker image, container cleanup behavior, and resource limits. 
+
+To set up a **Docker** type work pool with the default values, run:
+
+```bash
+prefect work-pool create --type docker my-docker-pool
+```
+
+... or create the work pool in the UI.
+
+To confirm the work pool creation was successful, run:
+
+```bash
+prefect work-pool ls
+```
+
+You should see your new `my-docker-pool` listed in the output.
+
+Next, check that you can see this work pool in your Prefect UI.
+Navigate to the **Work Pools** tab and verify that you see `my-docker-pool` listed.
+When you click into `my-docker-pool`, you should see a red status icon signifying that this work pool is not ready.
+
+To make the work pool ready, you'll need to start a worker.
+We'll show how to do this next.
+
+### Start a worker
+
+Workers are a lightweight polling process that kick off scheduled flow runs on a specific type of infrastructure (such as Docker).
+To start a worker on your local machine, open a new terminal and confirm that your virtual environment has `prefect` installed.
+
+Run the following command in this new terminal to start the worker:
+
+```bash
+prefect worker start --pool my-docker-pool
+```
+
+You should see the worker start.
+It's now polling the Prefect API to check for any scheduled flow runs it should pick up and then submit for execution.
+You'll see your new worker listed in the UI under the **Workers** tab of the Work Pools page with a recent last polled date.
+The work pool should have a `Ready` status indicator.
+
+<Tip>
+**Pro Tip:**
+
+If `my-docker-pool` does not already exist, the below command will create it for you automatically with the default settings for that work pool type, in this case `docker`.
+
+```bash
+prefect worker start --pool my-docker-pool --type docker
+```
+</Tip>
+
+Keep this terminal session active for the worker to continue to pick up jobs.
+Since you are running this worker locally, the worker will if you close the terminal.
+In a production setting this worker should run as a [daemonized or managed process](/3.0/resources/daemonize-processes/).
+
 ## Create the deployment
 
 From the previous steps, you now have:
