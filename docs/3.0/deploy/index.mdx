@@ -15,7 +15,7 @@ In addition to manually triggering and managing flow runs, deploying a flow expo
 - remotely configure [schedules](/3.0/automate/add-schedules) and [automation rules](/3.0/automate/events/automations-triggers)
 - dynamically provision infrastructure with [work pools](/3.0/deploy/infrastructure-concepts/work-pools) - optionally with templated guardrails for other users
 
-## Create a deployment 
+## Create a deployment
 
 ### Create a deployment with `serve`
 
@@ -421,3 +421,5 @@ configuration, and prepares the runtime environment for workflow execution.
 Pull steps allow users to highly decouple their workflow architecture.
 For example, a common use of pull steps is to dynamically pull code from remote filesystems such as
 GitHub with each run of their deployment.
+
+- **`worker_status_filter`**: an optional field that filters workers based on their status, such as active or inactive. This field optimizes deployment by only displaying setup instructions when necessary.
