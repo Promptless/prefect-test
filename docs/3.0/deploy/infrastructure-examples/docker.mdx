@@ -60,7 +60,7 @@ Run the following command in this new terminal to start the worker:
 prefect worker start --pool my-docker-pool
 ```
 
-If there are no active workers in `my-docker-pool`, you should see the worker start. 
+You should see the worker start.
 It's now polling the Prefect API to check for any scheduled flow runs it should pick up and then submit for execution.
 You'll see your new worker listed in the UI under the **Workers** tab of the Work Pools page with a recent last polled date.
 The work pool should have a `Ready` status indicator.
