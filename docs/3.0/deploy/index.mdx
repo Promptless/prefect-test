@@ -421,3 +421,7 @@ configuration, and prepares the runtime environment for workflow execution.
 Pull steps allow users to highly decouple their workflow architecture.
 For example, a common use of pull steps is to dynamically pull code from remote filesystems such as
 GitHub with each run of their deployment.
+
+- **`worker_status_filter`**: (Optional) A filter to determine active workers within the work pool. 
+This field can be used to prevent unnecessary worker setup instructions during deployment if active workers are present.
+  

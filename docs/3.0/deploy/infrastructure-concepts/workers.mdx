@@ -96,6 +96,12 @@ execute a flow run.
     with the `Worker` role, which you can configure by setting the `PREFECT_API_KEY`.
 </Tip>
 
+<Tip>
+**Active Worker Check**
+
+    Before starting a new worker, the system checks for active workers in the specified work pool. If active workers are detected, the system may not suggest starting a new worker, thereby optimizing the deployment process.
+</Tip>
+
 ### Worker status
 
 Workers have two statuses: `ONLINE` and `OFFLINE`. A worker is online if it sends regular heartbeat messages to the Prefect API. 
@@ -143,6 +149,7 @@ For example, to limit a worker to five concurrent flow runs:
 prefect worker start --pool "my-pool" --limit 5
 ```
 
+If there are already active workers in the work pool, Prefect will not suggest starting new workers. This avoids unnecessary duplication and optimizes resource usage.
 ### Configure prefetch
 
 By default, the worker submits flow runs a short time (10 seconds) before they are scheduled to run. 

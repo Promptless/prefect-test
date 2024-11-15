@@ -32,6 +32,7 @@ from that pool.
 - Improved visibility into the status of each worker, including when a worker was started 
 and when it last polled.
 - Better handling of race conditions for high availability use cases.
+- Enhanced deployment process with an active worker check, reducing unnecessary setup instructions for users with existing active workers.
 
 ### Work pools
 
@@ -154,6 +155,8 @@ by workers.
 2. **[Start a worker](/3.0/deploy/infrastructure-concepts/workers/#start-a-worker)**
 
 This worker replaces your agent and polls your new work pool for flow runs to execute.
+
+If there are already active workers in your work pool, you will not need to start a new worker.
 
 ```bash
 prefect worker start -p <work pool name>
