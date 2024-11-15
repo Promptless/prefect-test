@@ -32,6 +32,7 @@ from that pool.
 - Improved visibility into the status of each worker, including when a worker was started 
 and when it last polled.
 - Better handling of race conditions for high availability use cases.
+- Enhanced deployment logic to check for active workers, suppressing unnecessary worker setup instructions when active workers are present, thus reducing user confusion and streamlining the deployment process.
 
 ### Work pools
 
