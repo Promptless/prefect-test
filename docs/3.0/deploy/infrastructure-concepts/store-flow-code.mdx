@@ -142,20 +142,63 @@ If using the Python `deploy` method with a private repository that references a 
   </Tab>  
   <Tab title="Bitbucket">
     <CodeGroup>
-```
+
+    ```python bb_no_block.py
+    from prefect import flow
+
+
     if __name__ == "__main__":
-        gitlab_repo = GitRepository(
-            url="https://gitlab.com/org/my-private-repo.git",
-            credentials={
-                "access_token": Secret.load("my-secret-block-with-my-gl-credentials")
-            },
+        flow.from_source(
+            source="https://bitbucket.com/org/my-public-repo.git",
+            entrypoint="bb_no_block.py:my_flow",
+        ).deploy(
+            name="my-bitbucket-deployment",
+            work_pool_name="my_pool",
+        )
+    ```
+
+    ```python bb_credentials_block.py
+
+    from prefect import flow
+    from prefect.runner.storage import GitRepository
+    from prefect_bitbucket import BitBucketCredentials
+
+    if __name__ == "__main__":
+
+        github_repo = GitRepository(
+            url="https://bitbucket.com/org/my-private-repo.git",
+            credentials=BitBucketCredentials.load("my-bitbucket-credentials-block")
         )
 
         flow.from_source(
-            source=gitlab_repo,
-            entrypoint="gl_secret_block.py:my_flow",
+            source=source,
+            entrypoint="bb_credentials_block.py:my_flow",
         ).deploy(
-            name="private-gitlab-deploy",
+            name="private-bitbucket-deploy",
+            work_pool_name="my_pool",
+        )
+    ```
+
+    ```python bb_secret_block.py
+
+    from prefect import flow
+    from prefect.runner.storage import GitRepository
+    from prefect.blocks.system import Secret
+
+
+    if __name__ == "__main__":
+        github_repo=GitRepository(
+            url="https://bitbucket.com/org/my-private-repo.git",
+            credentials={
+                "access_token": Secret.load("my-secret-block-with-my-bb-credentials")
+            },
+        )
+        
+        flow.from_source(
+            source=github_repo,
+            entrypoint="bb_secret_block.py:my_flow",
+        ).deploy(
+            name="private-bitbucket-deploy",
             work_pool_name="my_pool",
         )
     ```
@@ -164,31 +207,78 @@ If using the Python `deploy` method with a private repository that references a 
     # relevant section of the file:
     pull:
         - prefect.deployments.steps.git_clone:
-            repository: https://gitlab.com/org/my-private-repo.git
+            repository: https://bitbucket.org/org/my-private-repo.git
             # Uncomment the following line if using a credentials block
-            # credentials: "{{ prefect.blocks.gitlab-credentials.my-gitlab-credentials-block }}"
+            # credentials: "{{ prefect.blocks.bitbucket-credentials.my-bitbucket-credentials-block }}"
             # Uncomment the following line if using a Secret block
             # access_token: "{{ prefect.blocks.secret.my-block-name }}"
     ```
     </CodeGroup>
 
-    For accessing a private repository, we recommend using HTTPS with Personal Access Tokens. 
+    For accessing a private repository, we recommend using HTTPS with Repository, Project, or Workspace [Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/access-tokens/). 
+    
+    You can create a Repository Access Token with Scopes -> Repositories -> Read.
 
-    You can create a Personal Access Token with Scopes -> api.
-
-    GitLab requires you prepend the token string with `Bearer ` The full string looks like this: `Bearer abc_123_this_is_a_token`. 
+    Bitbucket requires you prepend the token string with `x-token-auth:` The full string looks like this: `x-token-auth:abc_123_this_is_a_token`. 
 
     If using a Secret block, you can create it through code or the UI ahead of time and reference it at deployment creation as shown above. 
 
     If using a credentials block, you can create it ahead of time and reference it at deployment creation. 
 
-    1. Install prefect-gitlab with `pip install -U prefect-gitlab`
-    1. Register the blocks in that library with `prefect block register -m prefect_gitlab` 
-    1. Create a GitLab credentials block in code or the Prefect UI and reference at deployment creation as shown above.
+    1. Install prefect-bitbucket with `pip install -U prefect-bitbucket`
+    1. Register the blocks in that library with `prefect block register -m prefect_bitbucket` 
+    1. Create a Bitbucket credentials block in code or the Prefect UI and reference at deployment creation as shown above.
 
   </Tab>
-```
 
+<Tab title="GitLab">
+
+    <CodeGroup>
+
+    ```python gl_no_block.py
+    from prefect import flow
+
+
+    if __name__ == "__main__":
+        gitlab_repo = "https://gitlab.com/org/my-public-repo.git"
+
+        flow.from_source(
+            source=gitlab_repo,
+            entrypoint="gl_no_block.py:my_flow"
+        ).deploy(
+            name="my-gitlab-deployment",
+            work_pool_name="my_pool",
+        )
+    ```
+
+    ```python gl_credentials_block.py
+
+    from prefect import flow
+    from prefect.runner.storage import GitRepository
+    from prefect_gitlab import GitLabCredentials
+
+
+    if __name__ == "__main__":
+
+        gitlab_repo = GitRepository(
+            url="https://gitlab.com/org/my-private-repo.git",
+            credentials=GitLabCredentials.load("my-gitlab-credentials-block")
+        )
+        
+        flow.from_source(
+            source=gitlab_repo,
+            entrypoint="gl_credentials_block.py:my_flow",
+        ).deploy(
+            name="private-gitlab-deploy",
+            work_pool_name="my_pool",
+        )
+    ```
+
+    ```python gl_secret_block.py    
+
+    from prefect import flow
+    from prefect.runner.storage import GitRepository
+    from prefect.blocks.system import Secret
 
 
     if __name__ == "__main__":

@@ -52,8 +52,6 @@ with a single command.
 - The YAML-based API supports [templating](/3.0/deploy/infrastructure-concepts/prefect-yaml/#templating-options) 
 to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/docker/#reusing-configuration-across-deployments).
 
-- Deployment logic now includes a check for active workers in work pools, omitting unnecessary worker setup instructions if active workers are present, streamlining the deployment process.
-
 ## Upgrade changes
 
 1. **Deployment CLI and Python SDK:**
@@ -89,10 +87,6 @@ to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/doc
     [`prefect.yaml`](/3.0/deploy/infrastructure-concepts/prefect-yaml/#work-with-multiple-deployments-with-prefect-yaml) 
     file or use the [`deploy`](/3.0/deploy/infrastructure-examples/docker) 
     function.
-
-5. **Active Worker Check in Deployment:**
-
-    The deployment process now includes a check for active workers in a work pool. If active workers are detected, the instructions to start a new worker are omitted, streamlining the deployment process and reducing unnecessary steps for users with existing active workers.
 
 ## What's similar
 
@@ -175,10 +169,6 @@ If you currently use `Deployment.build_from_flow`, we recommend using `flow.depl
 If you currently use `prefect deployment build` and `prefect deployment apply`, we recommend 
 using `prefect deploy`.
 
-<Tip>
-**Active Worker Check**
-When deploying to a work pool, the system now checks for active workers. If active workers are detected, you will not be prompted to start a new worker, streamlining the deployment process.
-</Tip>
 ### Use `flow.deploy`
 
 If you have a Python script that uses `Deployment.build_from_flow` to create a deployment, you
