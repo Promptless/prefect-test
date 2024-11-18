@@ -32,6 +32,7 @@ from that pool.
 - Improved visibility into the status of each worker, including when a worker was started 
 and when it last polled.
 - Better handling of race conditions for high availability use cases.
+- New feature to check for active workers in a work pool during deployment, preventing unnecessary worker setup instructions if active workers are present.
 
 ### Work pools
 
@@ -88,6 +89,13 @@ to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/doc
     file or use the [`deploy`](/3.0/deploy/infrastructure-examples/docker) 
     function.
 
+5. **Active Worker Check in Deployment:**
+
+    The deployment process now includes a check for active workers in the work pool. If active workers are detected, the setup instructions for workers are omitted, streamlining the deployment process for users with existing setups.
+
+6. **Worker Filtering:**
+
+    A new `WorkerFilterStatus` class has been introduced to filter workers based on their status, such as ONLINE. This enhances the ability to manage and filter workers efficiently during deployments.
 ## What's similar
 
 - You can set storage blocks as the pull action in a `prefect.yaml` file.
