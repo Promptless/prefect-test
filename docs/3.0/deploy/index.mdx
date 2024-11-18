@@ -6,7 +6,7 @@ description: Learn how to use deployments to trigger flow runs remotely.
 
 Deployments allow you to run flows on a [schedule](/3.0/automate/add-schedules/) and trigger runs based on [events](/3.0/automate/events/automations-triggers/).
 
-Deployments are server-side representations of flows.
+[Deployments](/3.0/deploy/infrastructure-examples/docker/) are server-side representations of flows.
 They store the crucial metadata for remote orchestration including when, where, and how a workflow should run.
 
 In addition to manually triggering and managing flow runs, deploying a flow exposes an API and UI that allow you to:
@@ -421,3 +421,5 @@ configuration, and prepares the runtime environment for workflow execution.
 Pull steps allow users to highly decouple their workflow architecture.
 For example, a common use of pull steps is to dynamically pull code from remote filesystems such as
 GitHub with each run of their deployment.
+
+- **`worker_filter_status`**: this field allows filtering workers based on their status using the `WorkerFilterStatus` class. It supports `any_` and `not_any_` fields for including or excluding specific worker statuses, providing flexibility in worker management.

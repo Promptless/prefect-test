@@ -25,6 +25,7 @@ specifying an infrastructure block. Instead, infrastructure configuration is spe
 [work pool](/3.0/deploy/infrastructure-concepts/work-pools/) and passed to each worker that polls work 
 from that pool.
 
+When deploying, the system now checks for active workers in the work pool and omits setup instructions if active workers are already present, streamlining the deployment process.
 ## Upgrade enhancements
 
 ### Workers
@@ -32,6 +33,7 @@ from that pool.
 - Improved visibility into the status of each worker, including when a worker was started 
 and when it last polled.
 - Better handling of race conditions for high availability use cases.
+- New feature to check for active workers in a work pool before suggesting the start of a new worker during deployment, reducing unnecessary instructions for users with existing active workers.
 
 ### Work pools
 
@@ -87,6 +89,10 @@ to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/doc
     [`prefect.yaml`](/3.0/deploy/infrastructure-concepts/prefect-yaml/#work-with-multiple-deployments-with-prefect-yaml) 
     file or use the [`deploy`](/3.0/deploy/infrastructure-examples/docker) 
     function.
+
+5. **Worker Status Filtering and Deployment Logic:**
+
+    The deployment process now includes a check for active workers in a work pool. If active workers are detected, the deployment instructions will omit the setup of new workers, streamlining the process. Additionally, the `WorkerFilterStatus` class can be used to filter workers by their status, using the `any_` and `not_any_` fields for more flexible worker management.
 
 ## What's similar
 
@@ -158,6 +164,8 @@ This worker replaces your agent and polls your new work pool for flow runs to ex
 ```bash
 prefect worker start -p <work pool name>
 ```
+
+Note: If there are already active workers in your work pool, you may not need to start a new worker. The system will automatically check for active workers and omit unnecessary instructions.
 
 3. **Deploy your flows to the new work pool**
 
