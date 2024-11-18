@@ -525,89 +525,91 @@ The above command deploys:
     To provide overrides to a deployment through the CLI, you must deploy that deployment individually.
 </Note>
 
-### Reuse configuration across deployments
+```
+    _____________________________________________________________________________________________
+    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
+    |                                                                                           |
+    |     Updates in subscription Azure subscription 1                                          |
+    |                                                                                           |
+    |         - Create a resource group in location eastus                                      |
+    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
+    |         - Create/use a service principal for app registration                             |
+    |         - Generate a secret for app registration                                          |
+    |         - Create an Azure Container Registry with prefix prefect                           |
+    |         - Create an identity prefect-acr-identity to allow access to the created registry |
+    |         - Assign Contributor role to service account                                      |
+    |         - Create an ACR registry for image hosting                                        |
+    |         - Create an identity for Azure Container Instance to allow access to the registry |
+    |                                                                                           |
+    |     Updates in Prefect workspace                                                          |
+    |                                                                                           |
+    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
+    |                                                                                           |
+    _____________________________________________________________________________________________
+    Proceed with infrastructure provisioning? [y/n]:     
+    Creating resource group
+    Creating app registration
+    Generating secret for app registration
+    Creating ACI credentials block
+    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
+    Assigning Contributor role to service account
+    Creating Azure Container Registry
+    Creating identity
+    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
+    Created work pool 'my-aci-work-pool'!
+    Checking for active workers...
+    Active workers found. Skipping worker start instructions.
+    ```
 
-Because a `prefect.yaml` file is a standard YAML file, you can use [YAML aliases](https://yaml.org/spec/1.2.2/#71-alias-nodes) 
-to reuse configuration across deployments.
+    <Tip>
+    **Default Docker build namespace**
+        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
+        the default Docker build namespace is set to the URL of the registry.
+    </Tip>
 
-This capability allows multiple deployments to share the work pool configuration, deployment actions, or other 
-configurations.
+        While the default namespace is set, any images you build without specifying a registry or username/organization 
+        are pushed to the registry.
 
-Declare a YAML alias with the `&{alias_name}` syntax and insert that alias elsewhere in the file with the `*{alias_name}` 
-syntax. When aliasing YAML maps, you can override specific fields of the aliased map with the `<<: *{alias_name}` syntax and 
-adding additional fields below.
+        To use this capability, write your deploy scripts like this:
 
-We recommend adding a `definitions` section to your `prefect.yaml` file at the same level as the `deployments` section to store your 
-aliases.
+        ```python example_deploy_script.py
+        from prefect import flow
+        from prefect.docker import DockerImage                                
 
-For example:
 
-```yaml
-build: ...
-push: ...
-pull: ...
+        @flow(log_prints=True)                                                         
+        def my_flow(name: str = "world"):
+            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
 
-definitions:
-    work_pools:
-        my_docker_work_pool: &my_docker_work_pool
-            name: my-docker-work-pool
-            work_queue_name: default
-            job_variables:
-                image: "{{ build-image.image }}"
-    schedules:
-        every_ten_minutes: &every_10_minutes
-            interval: 600
-    actions:
-        docker_build: &docker_build
-            - prefect_docker.deployments.steps.build_docker_image: &docker_build_config
-                id: build-image
-                requires: prefect-docker>=0.3.0
-                image_name: my-example-image
-                tag: dev
-                dockerfile: auto
-        
-        docker_push: &docker_push
-            - prefect_docker.deployments.steps.push_docker_image: &docker_push_config
-                requires: prefect-docker>=0.6.0
-                image_name: my-example-image
-                tag: dev
-                credentials: "{{ prefect.blocks.docker-registry-credentials.dev-registry }}"
 
-deployments:
-- name: deployment-1
-    entrypoint: flows/hello.py:my_flow
-    schedule: *every_10_minutes
-    parameters:
-        number: 42,
-        message: Don't panic!
-    work_pool: *my_docker_work_pool
-    build: *docker_build # Uses the full docker_build action with no overrides
-    push: *docker_push
+        if __name__ == "__main__":
+            my_flow.deploy(                                                            
+                name="my-deployment",
+                work_pool_name="my-work-pool",                                    
+                image=DockerImage(                                                 
+                    name="my-image:latest",                                       
+                    platform="linux/amd64",                                            
+                )                                                                 
+            )       
+        ```
 
-- name: deployment-2
-    entrypoint: flows/goodbye.py:my_other_flow
-    work_pool: *my_docker_work_pool
-    build:
-        - prefect_docker.deployments.steps.build_docker_image:
-            <<: *docker_build_config # Uses the docker_build_config alias and overrides the dockerfile field
-            dockerfile: Dockerfile.custom
-    push: *docker_push
+        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
+  </Tab>
+  <Tab title="Google Cloud Run">
 
-- name: deployment-3
-    entrypoint: flows/hello.py:yet_another_flow
-    schedule: *every_10_minutes
-    work_pool:
-        name: my-process-work-pool
-        work_queue_name: primary-queue
-
+```bash
+prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
 ```
 
-In the above example, YAML aliases reuse work pool, schedule, and build configuration across multiple deployments:
+The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
+configures it to execute flows through Cloud Run.
+In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
+service account, (if they don't already exist).
+In your Prefect workspace, this command creates a 
+[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
 
-- `deployment-1` and `deployment-2` use the same work pool configuration
-- `deployment-1` and `deployment-3` use the same schedule
-- `deployment-1` and `deployment-2` use the same build deployment action, but `deployment-2` overrides the `dockerfile` field to use a custom Dockerfile
-
+Here's an abbreviated example output from running the command:
 ### Deployment declaration reference
 
 #### Deployment fields

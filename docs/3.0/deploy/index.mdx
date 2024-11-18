@@ -6,7 +6,7 @@ description: Learn how to use deployments to trigger flow runs remotely.
 
 Deployments allow you to run flows on a [schedule](/3.0/automate/add-schedules/) and trigger runs based on [events](/3.0/automate/events/automations-triggers/).
 
-Deployments are server-side representations of flows.
+[Deployments](/3.0/deploy/infrastructure-examples/docker/) are server-side representations of flows.
 They store the crucial metadata for remote orchestration including when, where, and how a workflow should run.
 
 In addition to manually triggering and managing flow runs, deploying a flow exposes an API and UI that allow you to:
@@ -398,26 +398,88 @@ versions set through their respective decorators. These versions are sent to the
 anytime the flow or task runs, allowing you to audit changes.
 </Tip>
 
-### Worker-specific fields
+```
+    _____________________________________________________________________________________________
+    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
+    |                                                                                           |
+    |     Updates in subscription Azure subscription 1                                          |
+    |                                                                                           |
+    |         - Create a resource group in location eastus                                      |
+    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
+    |         - Create/use a service principal for app registration                             |
+    |         - Generate a secret for app registration                                          |
+    |         - Create an Azure Container Registry with prefix prefect                           |
+    |         - Create an identity prefect-acr-identity to allow access to the created registry |
+    |         - Assign Contributor role to service account                                      |
+    |         - Create an ACR registry for image hosting                                        |
+    |         - Create an identity for Azure Container Instance to allow access to the registry |
+    |                                                                                           |
+    |     Updates in Prefect workspace                                                          |
+    |                                                                                           |
+    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
+    |                                                                                           |
+    _____________________________________________________________________________________________
+    Proceed with infrastructure provisioning? [y/n]:     
+    Creating resource group
+    Creating app registration
+    Generating secret for app registration
+    Creating ACI credentials block
+    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
+    Assigning Contributor role to service account
+    Creating Azure Container Registry
+    Creating identity
+    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
+    Created work pool 'my-aci-work-pool'!
+    Checking for active workers...
+    Active workers found. Skipping worker start instructions.
+    ```
 
-[Work pools](/3.0/deploy/infrastructure-concepts/work-pools/) and [workers](/3.0/deploy/infrastructure-concepts/workers/) are an advanced deployment pattern that
-allow you to dynamically provision infrastructure for each flow run.
-The work pool job template interface allows users to create and govern opinionated interfaces
-to their workflow infrastructure.
-To do this, a deployment using workers needs the following fields:
+    <Tip>
+    **Default Docker build namespace**
+        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
+        the default Docker build namespace is set to the URL of the registry.
+    </Tip>
 
-- **`work_pool_name`**: the name of the work pool this deployment is associated with.
-Work pool types mirror infrastructure types, which means this field impacts the options available
-for the other fields.
-- **`work_queue_name`**: if you are using work queues to either manage priority or concurrency, you can
-associate a deployment with a specific queue within a work pool using this field.
-- **`job_variables`**: this field allows deployment authors to customize whatever infrastructure
-options have been exposed on this work pool.
-This field is often used for Docker image names, Kubernetes annotations and limits,
-and environment variables.
-- **`pull_steps`**: a JSON description of steps that retrieves flow code or
-configuration, and prepares the runtime environment for workflow execution.
+        While the default namespace is set, any images you build without specifying a registry or username/organization 
+        are pushed to the registry.
 
-Pull steps allow users to highly decouple their workflow architecture.
-For example, a common use of pull steps is to dynamically pull code from remote filesystems such as
-GitHub with each run of their deployment.
+        To use this capability, write your deploy scripts like this:
+
+        ```python example_deploy_script.py
+        from prefect import flow
+        from prefect.docker import DockerImage                                
+
+
+        @flow(log_prints=True)                                                         
+        def my_flow(name: str = "world"):
+            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
+
+
+        if __name__ == "__main__":
+            my_flow.deploy(                                                            
+                name="my-deployment",
+                work_pool_name="my-work-pool",                                    
+                image=DockerImage(                                                 
+                    name="my-image:latest",                                       
+                    platform="linux/amd64",                                            
+                )                                                                 
+            )       
+        ```
+
+        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
+  </Tab>
+  <Tab title="Google Cloud Run">
+
+```bash
+prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
+```
+
+The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
+configures it to execute flows through Cloud Run.
+In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
+service account, (if they don't already exist).
+In your Prefect workspace, this command creates a 
+[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
+
+Here's an abbreviated example output from running the command:

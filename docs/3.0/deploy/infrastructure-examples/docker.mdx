@@ -1,84 +1,88 @@
----
-title: Run flows in Docker containers
-description: Learn how to deploy a flow to a Docker work pool with workers
----
+```
+    _____________________________________________________________________________________________
+    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
+    |                                                                                           |
+    |     Updates in subscription Azure subscription 1                                          |
+    |                                                                                           |
+    |         - Create a resource group in location eastus                                      |
+    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
+    |         - Create/use a service principal for app registration                             |
+    |         - Generate a secret for app registration                                          |
+    |         - Create an Azure Container Registry with prefix prefect                           |
+    |         - Create an identity prefect-acr-identity to allow access to the created registry |
+    |         - Assign Contributor role to service account                                      |
+    |         - Create an ACR registry for image hosting                                        |
+    |         - Create an identity for Azure Container Instance to allow access to the registry |
+    |                                                                                           |
+    |     Updates in Prefect workspace                                                          |
+    |                                                                                           |
+    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
+    |                                                                                           |
+    _____________________________________________________________________________________________
+    Proceed with infrastructure provisioning? [y/n]:     
+    Creating resource group
+    Creating app registration
+    Generating secret for app registration
+    Creating ACI credentials block
+    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
+    Assigning Contributor role to service account
+    Creating Azure Container Registry
+    Creating identity
+    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
+    Created work pool 'my-aci-work-pool'!
+    Checking for active workers...
+    Active workers found. Skipping worker start instructions.
+    ```
 
-In this example, you will set up:
+    <Tip>
+    **Default Docker build namespace**
+        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
+        the default Docker build namespace is set to the URL of the registry.
+    </Tip>
 
-- a Docker [**work pool**](/3.0/deploy/infrastructure-concepts/work-pools/): stores the infrastructure configuration for your deployment
-- a Docker [**worker**](/3.0/deploy/infrastructure-concepts/workers/): process that polls the Prefect API for flow runs to execute as Docker containers
-- a [**deployment**](/3.0/deploy/index/): a flow that should run according to the configuration on your Docker work pool
+        While the default namespace is set, any images you build without specifying a registry or username/organization 
+        are pushed to the registry.
 
-Then you can execute your deployment via the Prefect API (through the SDK, CLI, UI, etc).
+        To use this capability, write your deploy scripts like this:
 
-You must have [Docker](https://docs.docker.com/engine/install/) installed and running on your machine.
+        ```python example_deploy_script.py
+        from prefect import flow
+        from prefect.docker import DockerImage                                
 
-<Note>
-**Executing flows in a long-lived container**
 
-This guide shows how to run a flow in an ephemeral container that is removed after the flow run completes.
-To instead learn how to run flows in a static, long-lived container, see [this](/3.0/deploy/static-infrastructure-examples/docker/) guide.
+        @flow(log_prints=True)                                                         
+        def my_flow(name: str = "world"):
+            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
 
-</Note>
 
-### Create a work pool
+        if __name__ == "__main__":
+            my_flow.deploy(                                                            
+                name="my-deployment",
+                work_pool_name="my-work-pool",                                    
+                image=DockerImage(                                                 
+                    name="my-image:latest",                                       
+                    platform="linux/amd64",                                            
+                )                                                                 
+            )       
+        ```
 
-A work pool provides default infrastructure configurations that all jobs inherit and can override.
-You can adjust many defaults, such as the base Docker image, container cleanup behavior, and resource limits. 
-
-To set up a **Docker** type work pool with the default values, run:
+        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
+  </Tab>
+  <Tab title="Google Cloud Run">
 
 ```bash
-prefect work-pool create --type docker my-docker-pool
+prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
 ```
 
-... or create the work pool in the UI.
+The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
+configures it to execute flows through Cloud Run.
+In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
+service account, (if they don't already exist).
+In your Prefect workspace, this command creates a 
+[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
 
-To confirm the work pool creation was successful, run:
-
-```bash
-prefect work-pool ls
-```
-
-You should see your new `my-docker-pool` listed in the output.
-
-Next, check that you can see this work pool in your Prefect UI.
-Navigate to the **Work Pools** tab and verify that you see `my-docker-pool` listed.
-When you click into `my-docker-pool`, you should see a red status icon signifying that this work pool is not ready.
-
-To make the work pool ready, you'll need to start a worker.
-We'll show how to do this next.
-
-### Start a worker
-
-Workers are a lightweight polling process that kick off scheduled flow runs on a specific type of infrastructure (such as Docker).
-To start a worker on your local machine, open a new terminal and confirm that your virtual environment has `prefect` installed.
-
-Run the following command in this new terminal to start the worker:
-
-```bash
-prefect worker start --pool my-docker-pool
-```
-
-You should see the worker start.
-It's now polling the Prefect API to check for any scheduled flow runs it should pick up and then submit for execution.
-You'll see your new worker listed in the UI under the **Workers** tab of the Work Pools page with a recent last polled date.
-The work pool should have a `Ready` status indicator.
-
-<Tip>
-**Pro Tip:**
-
-If `my-docker-pool` does not already exist, the below command will create it for you automatically with the default settings for that work pool type, in this case `docker`.
-
-```bash
-prefect worker start --pool my-docker-pool --type docker
-```
-</Tip>
-
-Keep this terminal session active for the worker to continue to pick up jobs.
-Since you are running this worker locally, the worker will if you close the terminal.
-In a production setting this worker should run as a [daemonized or managed process](/3.0/resources/daemonize-processes/).
-
+Here's an abbreviated example output from running the command:
 ## Create the deployment
 
 From the previous steps, you now have:

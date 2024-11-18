@@ -12,82 +12,261 @@ If you are new to Prefect, we recommend starting with the
 [Prefect Quickstart](/3.0/get-started/quickstart/).
 </Note>
 
-## About workers and agents
-A [worker](/3.0/deploy/infrastructure-concepts/workers/) is the fusion of an 
-agent with an infrastructure block. 
-Like agents, workers poll a work pool for flow runs that are scheduled to start. 
-Like infrastructure blocks, workers are typed. They work with only one kind of infrastructure, 
-and they specify the default configuration for jobs submitted to that infrastructure.
+```
+    _____________________________________________________________________________________________
+    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
+    |                                                                                           |
+    |     Updates in subscription Azure subscription 1                                          |
+    |                                                                                           |
+    |         - Create a resource group in location eastus                                      |
+    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
+    |         - Create/use a service principal for app registration                             |
+    |         - Generate a secret for app registration                                          |
+    |         - Create an Azure Container Registry with prefix prefect                           |
+    |         - Create an identity prefect-acr-identity to allow access to the created registry |
+    |         - Assign Contributor role to service account                                      |
+    |         - Create an ACR registry for image hosting                                        |
+    |         - Create an identity for Azure Container Instance to allow access to the registry |
+    |                                                                                           |
+    |     Updates in Prefect workspace                                                          |
+    |                                                                                           |
+    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
+    |                                                                                           |
+    _____________________________________________________________________________________________
+    Proceed with infrastructure provisioning? [y/n]:     
+    Creating resource group
+    Creating app registration
+    Generating secret for app registration
+    Creating ACI credentials block
+    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
+    Assigning Contributor role to service account
+    Creating Azure Container Registry
+    Creating identity
+    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
+    Created work pool 'my-aci-work-pool'!
+    Checking for active workers...
+    Active workers found. Skipping worker start instructions.
+    ```
 
-Accordingly, workers are not a drop-in replacement for agents. **Using workers requires 
-deploying flows differently.** In particular, deploying a flow with a worker does not involve 
-specifying an infrastructure block. Instead, infrastructure configuration is specified on the 
-[work pool](/3.0/deploy/infrastructure-concepts/work-pools/) and passed to each worker that polls work 
-from that pool.
+    <Tip>
+    **Default Docker build namespace**
+        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
+        the default Docker build namespace is set to the URL of the registry.
+    </Tip>
 
-## Upgrade enhancements
+        While the default namespace is set, any images you build without specifying a registry or username/organization 
+        are pushed to the registry.
 
-### Workers
+        To use this capability, write your deploy scripts like this:
 
-- Improved visibility into the status of each worker, including when a worker was started 
-and when it last polled.
-- Better handling of race conditions for high availability use cases.
+        ```python example_deploy_script.py
+        from prefect import flow
+        from prefect.docker import DockerImage                                
 
-### Work pools
 
-- Work pools allow greater customization and governance of infrastructure parameters for deployments 
-through their [base job template](/3.0/deploy/infrastructure-concepts/work-pools/#base-job-template).
-- Prefect Cloud [push work pools](/3.0/deploy/infrastructure-examples/serverless/) enable flow 
-execution in your cloud provider environment without the need to host a worker.
-- Prefect Cloud [managed work pools](/3.0/deploy/infrastructure-examples/managed/) allow you to run flows on 
-Prefect's infrastructure, without the need to host a worker or configure cloud provider infrastructure.
+        @flow(log_prints=True)                                                         
+        def my_flow(name: str = "world"):
+            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
 
-### Improved deployment interfaces
 
-- The Python deployment experience with `.deploy()` or the alternative deployment experience with 
-`prefect.yaml` are more flexible and easier to use than block and agent-based deployments.
-- Both options allow you to [deploy multiple flows](/3.0/deploy/infrastructure-concepts/prefect-yaml/#work-with-multiple-deployments-with-prefect-yaml) 
-with a single command.
-- Both options allow you to build Docker images for your flows to create portable execution environments.
-- The YAML-based API supports [templating](/3.0/deploy/infrastructure-concepts/prefect-yaml/#templating-options) 
-to enable [dryer deployment definitions](/3.0/deploy/infrastructure-examples/docker/#reusing-configuration-across-deployments).
+        if __name__ == "__main__":
+            my_flow.deploy(                                                            
+                name="my-deployment",
+                work_pool_name="my-work-pool",                                    
+                image=DockerImage(                                                 
+                    name="my-image:latest",                                       
+                    platform="linux/amd64",                                            
+                )                                                                 
+            )       
+        ```
 
-## Upgrade changes
+        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
+  </Tab>
+  <Tab title="Google Cloud Run">
 
-1. **Deployment CLI and Python SDK:**
+```bash
+prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
+```
 
-    `prefect deployment build <entrypoint>`/`prefect deployment apply` --> [`prefect deploy`](/3.0/deploy/infrastructure-concepts/prefect-yaml/#deployment-declaration-reference)
+The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
+configures it to execute flows through Cloud Run.
+In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
+service account, (if they don't already exist).
+In your Prefect workspace, this command creates a 
+[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
 
-    Prefect now automatically detects flows in your repo and provides a [wizard](/3.0/#step-5-deploy-the-flow)  
-    to guide you through setting required attributes for your deployments.
+Here's an abbreviated example output from running the command:
+```
+    _____________________________________________________________________________________________
+    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
+    |                                                                                           |
+    |     Updates in subscription Azure subscription 1                                          |
+    |                                                                                           |
+    |         - Create a resource group in location eastus                                      |
+    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
+    |         - Create/use a service principal for app registration                             |
+    |         - Generate a secret for app registration                                          |
+    |         - Create an Azure Container Registry with prefix prefect                           |
+    |         - Create an identity prefect-acr-identity to allow access to the created registry |
+    |         - Assign Contributor role to service account                                      |
+    |         - Create an ACR registry for image hosting                                        |
+    |         - Create an identity for Azure Container Instance to allow access to the registry |
+    |                                                                                           |
+    |     Updates in Prefect workspace                                                          |
+    |                                                                                           |
+    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
+    |                                                                                           |
+    _____________________________________________________________________________________________
+    Proceed with infrastructure provisioning? [y/n]:     
+    Creating resource group
+    Creating app registration
+    Generating secret for app registration
+    Creating ACI credentials block
+    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
+    Assigning Contributor role to service account
+    Creating Azure Container Registry
+    Creating identity
+    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
+    Created work pool 'my-aci-work-pool'!
+    Checking for active workers...
+    Active workers found. Skipping worker start instructions.
+    ```
 
-    `Deployment.build_from_flow` --> [`flow.deploy`](https://prefect-python-sdk-docs.netlify.app/prefect/flows/#prefect.flows.Flow.deploy)
+    <Tip>
+    **Default Docker build namespace**
+        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
+        the default Docker build namespace is set to the URL of the registry.
+    </Tip>
 
-2. **Configuring remote flow code storage:**
+        While the default namespace is set, any images you build without specifying a registry or username/organization 
+        are pushed to the registry.
 
-    storage blocks --> [pull action](/3.0/deploy/infrastructure-concepts/prefect-yaml/#the-pull-action)
+        To use this capability, write your deploy scripts like this:
 
-    When using the YAML-based deployment API, you can configure a pull action in your `prefect.yaml` 
-    file to specify how to retrieve flow code for your deployments. You can use configuration from your 
-    existing storage blocks to define your pull action [through templating](/3.0/deploy/infrastructure-concepts/prefect-yaml/#templating-options).
+        ```python example_deploy_script.py
+        from prefect import flow
+        from prefect.docker import DockerImage                                
 
-    When using the Python deployment API, you can pass any storage block to the `flow.deploy` method to 
-    specify how to retrieve flow code for your deployment.
 
-3. **Configuring flow run infrastructure:**
+        @flow(log_prints=True)                                                         
+        def my_flow(name: str = "world"):
+            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
 
-    infrastructure blocks --> [typed work pool](/3.0/deploy/infrastructure-concepts/workers/#worker-types)
 
-    Default infrastructure config is now set on the typed work pool, and can be overwritten by 
-    individual deployments.
+        if __name__ == "__main__":
+            my_flow.deploy(                                                            
+                name="my-deployment",
+                work_pool_name="my-work-pool",                                    
+                image=DockerImage(                                                 
+                    name="my-image:latest",                                       
+                    platform="linux/amd64",                                            
+                )                                                                 
+            )       
+        ```
 
-4. **Managing multiple deployments:**
+        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
+  </Tab>
+  <Tab title="Google Cloud Run">
 
-    Create and/or update many deployments at once through a 
-    [`prefect.yaml`](/3.0/deploy/infrastructure-concepts/prefect-yaml/#work-with-multiple-deployments-with-prefect-yaml) 
-    file or use the [`deploy`](/3.0/deploy/infrastructure-examples/docker) 
-    function.
+```bash
+prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
+```
 
+The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
+configures it to execute flows through Cloud Run.
+In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
+service account, (if they don't already exist).
+In your Prefect workspace, this command creates a 
+[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
+
+Here's an abbreviated example output from running the command:
+```
+    _____________________________________________________________________________________________
+    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
+    |                                                                                           |
+    |     Updates in subscription Azure subscription 1                                          |
+    |                                                                                           |
+    |         - Create a resource group in location eastus                                      |
+    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
+    |         - Create/use a service principal for app registration                             |
+    |         - Generate a secret for app registration                                          |
+    |         - Create an Azure Container Registry with prefix prefect                           |
+    |         - Create an identity prefect-acr-identity to allow access to the created registry |
+    |         - Assign Contributor role to service account                                      |
+    |         - Create an ACR registry for image hosting                                        |
+    |         - Create an identity for Azure Container Instance to allow access to the registry |
+    |                                                                                           |
+    |     Updates in Prefect workspace                                                          |
+    |                                                                                           |
+    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
+    |                                                                                           |
+    _____________________________________________________________________________________________
+    Proceed with infrastructure provisioning? [y/n]:     
+    Creating resource group
+    Creating app registration
+    Generating secret for app registration
+    Creating ACI credentials block
+    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
+    Assigning Contributor role to service account
+    Creating Azure Container Registry
+    Creating identity
+    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
+    Created work pool 'my-aci-work-pool'!
+    Checking for active workers...
+    Active workers found. Skipping worker start instructions.
+    ```
+
+    <Tip>
+    **Default Docker build namespace**
+        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
+        the default Docker build namespace is set to the URL of the registry.
+    </Tip>
+
+        While the default namespace is set, any images you build without specifying a registry or username/organization 
+        are pushed to the registry.
+
+        To use this capability, write your deploy scripts like this:
+
+        ```python example_deploy_script.py
+        from prefect import flow
+        from prefect.docker import DockerImage                                
+
+
+        @flow(log_prints=True)                                                         
+        def my_flow(name: str = "world"):
+            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
+
+
+        if __name__ == "__main__":
+            my_flow.deploy(                                                            
+                name="my-deployment",
+                work_pool_name="my-work-pool",                                    
+                image=DockerImage(                                                 
+                    name="my-image:latest",                                       
+                    platform="linux/amd64",                                            
+                )                                                                 
+            )       
+        ```
+
+        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
+  </Tab>
+  <Tab title="Google Cloud Run">
+
+```bash
+prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
+```
+
+The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
+configures it to execute flows through Cloud Run.
+In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
+service account, (if they don't already exist).
+In your Prefect workspace, this command creates a 
+[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
+
+Here's an abbreviated example output from running the command:
 ## What's similar
 
 - You can set storage blocks as the pull action in a `prefect.yaml` file.
@@ -107,68 +286,91 @@ If you host your agents in a Kubernetes cluster, you can use the [Prefect worker
 to host workers in your cluster.
 </Tip>
 
-## Upgrade steps
-
-If you have existing deployments that use infrastructure blocks, you can quickly upgrade them to 
-be compatible with workers by following these steps:
-
-1. **[Create a work pool](/3.0/deploy/infrastructure-concepts/work-pools/#work-pool-configuration)**
-
-This new work pool replaces your infrastructure block.
-
-You can use the [`.publish_as_work_pool`](https://docs.prefect.io/2.19.2/api-ref/prefect/infrastructure/#prefect.infrastructure.Infrastructure.publish_as_work_pool) 
-method on any infrastructure block to create a work pool with the same configuration.
-
-{/*
-<!-- vale off -->
-*/}
-
-For example, if you have a `KubernetesJob` infrastructure block named 'my-k8s-job', you can 
-create a work pool with the same configuration with this script:
-
-```python
-from prefect.infrastructure import KubernetesJob
-
-
-KubernetesJob.load("my-k8s-job").publish_as_work_pool()
 ```
+    _____________________________________________________________________________________________
+    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
+    |                                                                                           |
+    |     Updates in subscription Azure subscription 1                                          |
+    |                                                                                           |
+    |         - Create a resource group in location eastus                                      |
+    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
+    |         - Create/use a service principal for app registration                             |
+    |         - Generate a secret for app registration                                          |
+    |         - Create an Azure Container Registry with prefix prefect                           |
+    |         - Create an identity prefect-acr-identity to allow access to the created registry |
+    |         - Assign Contributor role to service account                                      |
+    |         - Create an ACR registry for image hosting                                        |
+    |         - Create an identity for Azure Container Instance to allow access to the registry |
+    |                                                                                           |
+    |     Updates in Prefect workspace                                                          |
+    |                                                                                           |
+    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
+    |                                                                                           |
+    _____________________________________________________________________________________________
+    Proceed with infrastructure provisioning? [y/n]:     
+    Creating resource group
+    Creating app registration
+    Generating secret for app registration
+    Creating ACI credentials block
+    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
+    Assigning Contributor role to service account
+    Creating Azure Container Registry
+    Creating identity
+    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
+    Created work pool 'my-aci-work-pool'!
+    Checking for active workers...
+    Active workers found. Skipping worker start instructions.
+    ```
 
-Running this script creates a work pool named 'my-k8s-job' with the same configuration as your infrastructure block.
+    <Tip>
+    **Default Docker build namespace**
+        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
+        the default Docker build namespace is set to the URL of the registry.
+    </Tip>
 
-{/*
-<!-- vale on -->
-*/}
+        While the default namespace is set, any images you build without specifying a registry or username/organization 
+        are pushed to the registry.
+
+        To use this capability, write your deploy scripts like this:
+
+        ```python example_deploy_script.py
+        from prefect import flow
+        from prefect.docker import DockerImage                                
 
 
-<Tip>
-**Serving flows**
-If you are using a `Process` infrastructure block and a `LocalFilesystem` storage block 
-(or aren't using an infrastructure and storage block at all), you can use [`flow.serve`](/3.0/deploy/index) 
-to create a deployment without specifying a work pool name or start a worker.
+        @flow(log_prints=True)                                                         
+        def my_flow(name: str = "world"):
+            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
 
-This is a quick way to create a deployment for a flow and manage your 
-deployments if you don't need the dynamic infrastructure creation or configuration offered 
-by workers.
-</Tip>
 
-2. **[Start a worker](/3.0/deploy/infrastructure-concepts/workers/#start-a-worker)**
+        if __name__ == "__main__":
+            my_flow.deploy(                                                            
+                name="my-deployment",
+                work_pool_name="my-work-pool",                                    
+                image=DockerImage(                                                 
+                    name="my-image:latest",                                       
+                    platform="linux/amd64",                                            
+                )                                                                 
+            )       
+        ```
 
-This worker replaces your agent and polls your new work pool for flow runs to execute.
+        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
+  </Tab>
+  <Tab title="Google Cloud Run">
 
 ```bash
-prefect worker start -p <work pool name>
+prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
 ```
 
-3. **Deploy your flows to the new work pool**
+The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
+configures it to execute flows through Cloud Run.
+In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
+service account, (if they don't already exist).
+In your Prefect workspace, this command creates a 
+[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
 
-To deploy your flows to the new work pool, use `flow.deploy` for a Pythonic deployment 
-experience or `prefect deploy` for a YAML-based deployment experience.
-
-If you currently use `Deployment.build_from_flow`, we recommend using `flow.deploy`.
-
-If you currently use `prefect deployment build` and `prefect deployment apply`, we recommend 
-using `prefect deploy`.
-
+Here's an abbreviated example output from running the command:
 ### Use `flow.deploy`
 
 If you have a Python script that uses `Deployment.build_from_flow` to create a deployment, you

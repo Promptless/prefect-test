@@ -1,104 +1,85 @@
----
-title: Connect to Prefect Cloud
-description: Configure a local execution environment to access Prefect Cloud.
----
+```
+    _____________________________________________________________________________________________
+    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
+    |                                                                                           |
+    |     Updates in subscription Azure subscription 1                                          |
+    |                                                                                           |
+    |         - Create a resource group in location eastus                                      |
+    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
+    |         - Create/use a service principal for app registration                             |
+    |         - Generate a secret for app registration                                          |
+    |         - Create an Azure Container Registry with prefix prefect                           |
+    |         - Create an identity prefect-acr-identity to allow access to the created registry |
+    |         - Assign Contributor role to service account                                      |
+    |         - Create an ACR registry for image hosting                                        |
+    |         - Create an identity for Azure Container Instance to allow access to the registry |
+    |                                                                                           |
+    |     Updates in Prefect workspace                                                          |
+    |                                                                                           |
+    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
+    |                                                                                           |
+    _____________________________________________________________________________________________
+    Proceed with infrastructure provisioning? [y/n]:     
+    Creating resource group
+    Creating app registration
+    Generating secret for app registration
+    Creating ACI credentials block
+    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
+    Assigning Contributor role to service account
+    Creating Azure Container Registry
+    Creating identity
+    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
+    Created work pool 'my-aci-work-pool'!
+    Checking for active workers...
+    Active workers found. Skipping worker start instructions.
+    ```
 
-To create flow runs in a local or remote execution environment, first connect with Prefect Cloud or a 
-Prefect server as the backend API server. 
+    <Tip>
+    **Default Docker build namespace**
+        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
+        the default Docker build namespace is set to the URL of the registry.
+    </Tip>
 
-This involves: 
+        While the default namespace is set, any images you build without specifying a registry or username/organization 
+        are pushed to the registry.
 
-- Configuring the execution environment with the location of the API.
-- Authenticating with the API, either by logging in or providing a valid API key (Prefect Cloud only).
+        To use this capability, write your deploy scripts like this:
 
-## Log into Prefect Cloud from a terminal
+        ```python example_deploy_script.py
+        from prefect import flow
+        from prefect.docker import DockerImage                                
 
-Configure a local execution environment to use Prefect Cloud as the API server for flow runs. 
-You will log in a to Prefect Cloud account from the local environment where you want to run a flow.
 
-### Steps 
+        @flow(log_prints=True)                                                         
+        def my_flow(name: str = "world"):
+            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
 
-1. Open a new terminal session.
-2. [Install Prefect](/3.0/get-started/install/) in the environment where you want to execute flow runs.
+
+        if __name__ == "__main__":
+            my_flow.deploy(                                                            
+                name="my-deployment",
+                work_pool_name="my-work-pool",                                    
+                image=DockerImage(                                                 
+                    name="my-image:latest",                                       
+                    platform="linux/amd64",                                            
+                )                                                                 
+            )       
+        ```
+
+        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
+  </Tab>
+  <Tab title="Google Cloud Run">
 
 ```bash
-pip install -U prefect
+prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
 ```
 
-3. Use the `prefect cloud login` Prefect CLI command to log into Prefect Cloud from your environment.
+The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
+configures it to execute flows through Cloud Run.
+In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
+service account, (if they don't already exist).
+In your Prefect workspace, this command creates a 
+[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
 
-```bash
-prefect cloud login
-```
-
-The `prefect cloud login` command provides an interactive login experience. 
-
-```bash
-prefect cloud login
-```
-
-```bash
-? How would you like to authenticate? [Use arrows to move; enter to select]
-> Log in with a web browser
-    Paste an API key
-Paste your authentication key:
-? Which workspace would you like to use? [Use arrows to move; enter to select]
-> prefect/terry-prefect-workspace
-    g-gadflow/g-workspace
-Authenticated with Prefect Cloud! Using workspace 'prefect/terry-prefect-workspace'.
-```
-
-You can authenticate by manually pasting an [API key](/3.0/manage/cloud/manage-users/api-keys/) or through a browser-based approval that auto-generates an API key with a 30-day expiration.
-
-### Change workspaces
-
-To change which workspace to sync with, use the `prefect cloud workspace set` 
-Prefect CLI command while logged in, passing the account handle and workspace name:
-
-```bash
-prefect cloud workspace set --workspace "prefect/my-workspace"
-```
-
-If you don't provide a workspace, you will need to select one.
-
-**Workspace Settings** also shows you the `prefect cloud workspace set` Prefect CLI 
-command to sync a local execution environment with a given workspace.
-
-You may also use the `prefect cloud login` command with the `--workspace` or `-w` option to set the current workspace.
-
-```bash
-prefect cloud login --workspace "prefect/my-workspace"
-```
-
-## Manually configure Prefect API settings
-
-You can manually configure the `PREFECT_API_URL` setting to specify the Prefect Cloud API.
-
-For Prefect Cloud, configure the `PREFECT_API_URL` and `PREFECT_API_KEY` settings to authenticate 
-with Prefect Cloud by using an account ID, workspace ID, and API key.
-
-```bash
-prefect config set PREFECT_API_URL="https://api.prefect.cloud/api/accounts/[ACCOUNT-ID]/workspaces/[WORKSPACE-ID]"
-prefect config set PREFECT_API_KEY="[API-KEY]"
-```
-
-When you're in a Prefect Cloud workspace, you can copy the `PREFECT_API_URL` value directly from the page URL.
-
-This example configures `PREFECT_API_URL` and `PREFECT_API_KEY` in the default profile. 
-You can use `prefect profile` CLI commands to create settings profiles for different configurations. 
-For example, you can configure a "cloud" profile to use the Prefect Cloud API URL and API key; 
-and another "local" profile for local development using a local Prefect API server started with `prefect server start`. 
-See [Settings](/3.0/manage/settings-and-profiles/) for details.
-
-<Note>
-**Environment variables**
-
-You can set `PREFECT_API_URL` and `PREFECT_API_KEY` just like any other environment variable. 
-See [Overriding defaults with environment variables](/3.0/manage/settings-and-profiles/) 
-for more information.
-</Note>
-
-## Install requirements in execution environments
-
-In local and remote execution environments, such as VMs and containers, ensure that you've installed any flow 
-requirements or dependencies before creating a flow run.
+Here's an abbreviated example output from running the command:
