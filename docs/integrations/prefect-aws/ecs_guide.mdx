@@ -57,91 +57,36 @@ flowchart TB
     work_pool -->|configures| fr_task_definition
 ```
 
-```
-    _____________________________________________________________________________________________
-    | Provisioning infrastructure for your work pool my-aci-work-pool will require:             |
-    |                                                                                           |
-    |     Updates in subscription Azure subscription 1                                          |
-    |                                                                                           |
-    |         - Create a resource group in location eastus                                      |
-    |         - Create an app registration in Azure AD prefect-aci-push-pool-app                |
-    |         - Create/use a service principal for app registration                             |
-    |         - Generate a secret for app registration                                          |
-    |         - Create an Azure Container Registry with prefix prefect                           |
-    |         - Create an identity prefect-acr-identity to allow access to the created registry |
-    |         - Assign Contributor role to service account                                      |
-    |         - Create an ACR registry for image hosting                                        |
-    |         - Create an identity for Azure Container Instance to allow access to the registry |
-    |                                                                                           |
-    |     Updates in Prefect workspace                                                          |
-    |                                                                                           |
-    |         - Create Azure Container Instance credentials block aci-push-pool-credentials     |
-    |                                                                                           |
-    _____________________________________________________________________________________________
-    Proceed with infrastructure provisioning? [y/n]:     
-    Creating resource group
-    Creating app registration
-    Generating secret for app registration
-    Creating ACI credentials block
-    ACI credentials block 'aci-push-pool-credentials' created in Prefect Cloud
-    Assigning Contributor role to service account
-    Creating Azure Container Registry
-    Creating identity
-    Provisioning infrastructure... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
-    Infrastructure successfully provisioned for 'my-aci-work-pool' work pool!
-    Created work pool 'my-aci-work-pool'!
-    Checking for active workers...
-    Active workers found. Skipping worker start instructions.
-    ```
+## ECS and Prefect
 
-    <Tip>
-    **Default Docker build namespace**
-        After infrastructure provisioning completes, you are logged into your new Azure Container Registry and 
-        the default Docker build namespace is set to the URL of the registry.
-    </Tip>
+<Tip>
+**ECS tasks != Prefect tasks**
 
-        While the default namespace is set, any images you build without specifying a registry or username/organization 
-        are pushed to the registry.
+An ECS task is **not** the same thing as a [Prefect task](/3.0/develop/write-tasks).
 
-        To use this capability, write your deploy scripts like this:
+ECS tasks are groupings of containers that run within an ECS Cluster. An ECS task's behavior is determined by its task definition.
+</Tip>
 
-        ```python example_deploy_script.py
-        from prefect import flow
-        from prefect.docker import DockerImage                                
+An [*ECS task definition*](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) is the blueprint for the ECS task. It describes which Docker containers to run and what you want to have happen inside these containers.
 
+ECS tasks are instances of a task definition. A Task Execution launches container(s) as defined in the task definition **until they are stopped or exit on their own**. This setup is ideal for ephemeral processes such as a Prefect flow run.
 
-        @flow(log_prints=True)                                                         
-        def my_flow(name: str = "world"):
-            print(f"Hello {name}! I'm a flow running on an Azure Container Instance!") 
+The ECS task running the Prefect worker should be an [**ECS Service**](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html), given its long-running nature and need for **auto-recovery in case of failure**. An ECS service automatically replaces any task that fails, which is ideal for managing a long-running process such as a Prefect worker.
 
+When a Prefect flow is scheduled to run it goes into the work pool specified in the flow's deployment. Work pools are typed according to the infrastructure the flow will run on. Flow runs scheduled in an `ecs` typed work pool are executed as ECS tasks. Only Prefect ECS workers can poll an `ecs` typed work pool.
 
-        if __name__ == "__main__":
-            my_flow.deploy(                                                            
-                name="my-deployment",
-                work_pool_name="my-work-pool",                                    
-                image=DockerImage(                                                 
-                    name="my-image:latest",                                       
-                    platform="linux/amd64",                                            
-                )                                                                 
-            )       
-        ```
+When the ECS worker receives a scheduled flow run from the ECS work pool it is polling, it spins up the specified infrastructure on AWS ECS. The worker knows to build an ECS task definition for each flow run based on the configuration specified in the work pool.
 
-        This builds an image with the tag `<acr-registry-url>/my-image:latest` and pushes it to the registry.
-  </Tab>
-  <Tab title="Google Cloud Run">
+Once the flow run completes, the ECS containers of the cluster are spun down to a single container that continues to run the Prefect worker. This worker continues polling for work from the Prefect work pool.
 
-```bash
-prefect work-pool create --type cloud-run:push --provision-infra my-cloud-run-pool 
-```
+If you specify a task definition [ARN (Amazon Resource Name)](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html) in the work pool, the worker will use that ARN when spinning up the ECS Task, rather than creating a task definition from the fields supplied in the work pool configuration.
 
-The `--provision-infra` flag allows you to select a GCP project to use for your work pool and automatically 
-configures it to execute flows through Cloud Run.
-In your GCP project, this command activates the Cloud Run API, creates a service account, and creates a key for the 
-service account, (if they don't already exist).
-In your Prefect workspace, this command creates a 
-[`GCPCredentials` block](/integrations/prefect-gcp/index#authenticate-using-a-gcp-credentials-block) to store the service account key.
+You can use either EC2 or Fargate as the capacity provider. Fargate simplifies initiation, but lengthens infrastructure setup time for each flow run. Using EC2 for the ECS cluster can reduce setup time. In this example, we will show how to use Fargate.
 
-Here's an abbreviated example output from running the command:
+<Tip>
+If you prefer infrastructure as code check out this [Terraform module](https://registry.terraform.io/providers/PrefectHQ/prefect/latest/docs/resources/work_pool) to provision an ECS cluster with a worker.
+</Tip>
+
 ## Prerequisites
 
 - An AWS account with permissions to create ECS services and IAM roles.
