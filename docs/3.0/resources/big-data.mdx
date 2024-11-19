@@ -131,7 +131,3 @@ distributed across multiple machines.
 This can save you time and compute when operating on large data structures.
 See the [guide to working with Dask and Ray Task Runners](/3.0/develop/task-runners/)
 for details.
-
-### Control Task Result Persistence
-
-With the introduction of the `default_persist_result` configuration, you can now control whether task results should be persisted by default. This setting can be configured globally via the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` environment variable or within your configuration files. The setting can be `True`, `False`, or `None`, with `None` maintaining the existing behavior. This provides more granular control over result persistence, helping to manage memory usage and storage costs, especially for tasks handling large data objects.

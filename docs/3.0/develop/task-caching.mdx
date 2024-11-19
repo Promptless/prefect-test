@@ -32,19 +32,6 @@ See [managing results](/3.0/develop/results/) for more details on managing your 
 [settings](/3.0/manage/settings-and-profiles) for more details on managing Prefect settings.
 </Warning>
 
-<Note>
-**New Configuration Option for Task Result Persistence**
-
-A new configuration setting, `default_persist_result`, has been introduced to allow more granular control over task result persistence. This setting can be set to `True`, `False`, or `None` (default behavior). It can be configured via the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` environment variable or in configuration files. This setting overrides the parent flow/task settings if explicitly set to `True` or `False`.
-
-To set the default persistence behavior for tasks globally, use the following environment variable:
-
-```
-export PREFECT_TASKS_DEFAULT_PERSIST_RESULT=true
-```
-
-This provides enhanced control over memory usage and storage costs, especially for tasks handling large data objects.
-</Note>
 ## Cache keys
 
 To determine whether a task run should retrieve a cached state, Prefect uses the concept of a "cache key". 
