@@ -22,10 +22,10 @@ This behavior can be configured - see [customizing the cache](/3.0/develop/write
 **Caching requires result persistence**
 
 Caching requires result persistence, which is off by default.
-To turn on result persistence for all of your tasks use the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` setting:
+To turn on result persistence for all of your tasks use the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting:
 
 ```
-prefect config set PREFECT_TASKS_DEFAULT_PERSIST_RESULT=true
+prefect config set PREFECT_RESULTS_PERSIST_BY_DEFAULT=true
 ```
 
 See [managing results](/3.0/develop/results/) for more details on managing your result configuration, and
