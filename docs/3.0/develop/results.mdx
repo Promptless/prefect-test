@@ -22,11 +22,22 @@ prefect config set PREFECT_RESULTS_PERSIST_BY_DEFAULT=true
 See [settings](/3.0/manage/settings-and-profiles) for more information on how settings are managed.
 </Tip>
 
+<Tip>
+**Control task result persistence**
+
+You can control task result persistence using the `default_persist_result` setting. This can be set to `True`, `False`, or `None` to specify whether task results should be persisted by default. The environment variable `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` can also be used to set this behavior globally for tasks.
+
+```bash
+prefect config set PREFECT_TASKS_DEFAULT_PERSIST_RESULT=true
+```
+
+This setting provides more granular control over result persistence, helping to manage memory usage and storage costs, especially for tasks handling large data objects.
+</Tip>
 ## Configuring result persistence
 
 There are four categories of configuration for result persistence:
 - [whether to persist results at all](/3.0/develop/results#enabling-result-persistence): this is configured through
-various keyword arguments and the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting.
+various keyword arguments and the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting. Additionally, the `default_persist_result` setting can be used to specify default persistence behavior for tasks.
 - [what filesystem to persist results to](/3.0/develop/results#result-storage): this is configured through the `result_storage`
 keyword and the `PREFECT_DEFAULT_RESULT_STORAGE_BLOCK` setting.
 - [how to serialize and deserialize results](/3.0/develop/results#result-serialization): this is configured through
@@ -49,6 +60,11 @@ You can configure the location of these results through the `PREFECT_LOCAL_STORA
 prefect config set PREFECT_LOCAL_STORAGE_PATH='~/.my-results/'
 ```
 
+Additionally, the `default_persist_result` setting allows you to specify whether task results should be persisted by default. This can be set to `True`, `False`, or `None`, with `None` maintaining the existing behavior. You can configure this setting via the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` environment variable.
+
+```bash
+export PREFECT_TASKS_DEFAULT_PERSIST_RESULT=True
+```
 ### Enabling result persistence
 
 In addition to the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting, result persistence can also be
@@ -76,6 +92,7 @@ Any settings _explicitly_ set on a task take precedence over the flow settings.
 
 </Note>
 
+Additionally, the `default_persist_result` configuration setting can be used to specify whether task results should be persisted by default. This setting can be configured globally via the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` environment variable or within configuration files. The setting accepts `True`, `False`, or `None`, with `None` maintaining the existing behavior. Explicit task or flow settings will override this default configuration.
 ### Result storage
 
 You can configure the system of record for your results through the `result_storage` keyword argument.
@@ -169,6 +186,19 @@ def my_flow():
 If a result exists at a given storage key in the storage location, the task will load it without running.
 To learn more about caching mechanics in Prefect, see the [caching documentation](/3.0/develop/task-caching).
 
+#### Default Result Persistence
+
+You can control the default persistence behavior of task results using the `default_persist_result` configuration setting. This setting can be adjusted to `True`, `False`, or `None` to specify whether task results should be persisted by default. If set to `None`, the existing behavior is maintained. This configuration can be set via environment variables or configuration files, providing flexibility in managing memory usage and storage costs.
+
+For example, to set this configuration globally via an environment variable:
+
+```bash
+export PREFECT_TASKS_DEFAULT_PERSIST_RESULT=True
+```
+
+<Info>
+Explicit task or flow configurations will override the `default_persist_result` setting.
+</Info>
 ### Result serialization
 
 You can configure how results are serialized to storage using result serializers.
@@ -200,3 +230,5 @@ def foo():
 def bar():
     return "pretend this is biiiig data"
 ```
+
+Additionally, a new configuration setting `default_persist_result` has been introduced, allowing users to specify whether task results should be persisted by default. This setting can be configured globally via the environment variable `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` or in configuration files, providing more granular control over result persistence to manage memory usage and storage costs effectively.
