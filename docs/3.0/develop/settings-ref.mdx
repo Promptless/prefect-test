@@ -737,6 +737,20 @@ The path to a directory to store results in.
 `PREFECT_RESULTS_LOCAL_STORAGE_PATH`, `PREFECT_LOCAL_STORAGE_PATH`
 
 ---
+
+### `default_persist_result`
+The default setting for persisting task results when not otherwise specified.
+
+**Type**: `boolean | None`
+
+**Default**: `None`
+
+**TOML dotted key path**: `tasks.default_persist_result`
+
+**Supported environment variables**:
+`PREFECT_TASKS_DEFAULT_PERSIST_RESULT`
+
+This setting allows users to control the default behavior of result persistence for tasks, which can be overridden at the task or flow level.
 ## RunnerServerSettings
 Settings for controlling runner server behavior
 ### `enable`
