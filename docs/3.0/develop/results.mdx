@@ -22,22 +22,11 @@ prefect config set PREFECT_RESULTS_PERSIST_BY_DEFAULT=true
 See [settings](/3.0/manage/settings-and-profiles) for more information on how settings are managed.
 </Tip>
 
-<Tip>
-**Control task result persistence separately**
-
-With the introduction of the `default_persist_result` setting, you can now control task result persistence separately from flow persistence. This can be configured in the `tasks` section of the Prefect settings or via the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` environment variable:
-
-```bash
-prefect config set PREFECT_TASKS_DEFAULT_PERSIST_RESULT=true
-```
-
-This setting allows you to enable or disable result persistence by default for all tasks, providing more granular control over resource usage.
-</Tip>
 ## Configuring result persistence
 
 There are four categories of configuration for result persistence:
 - [whether to persist results at all](/3.0/develop/results#enabling-result-persistence): this is configured through
-various keyword arguments and the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting. Additionally, the `default_persist_result` setting can be used to control task result persistence separately from flows, configured via the `tasks.default_persist_result` key in the TOML configuration file or the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` environment variable.
+various keyword arguments and the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting.
 - [what filesystem to persist results to](/3.0/develop/results#result-storage): this is configured through the `result_storage`
 keyword and the `PREFECT_DEFAULT_RESULT_STORAGE_BLOCK` setting.
 - [how to serialize and deserialize results](/3.0/develop/results#result-serialization): this is configured through
@@ -60,7 +49,6 @@ You can configure the location of these results through the `PREFECT_LOCAL_STORA
 prefect config set PREFECT_LOCAL_STORAGE_PATH='~/.my-results/'
 ```
 
-Additionally, the `default_persist_result` setting allows you to control the default behavior of result persistence for tasks. This setting can be configured in the `tasks` section of the Prefect settings, either through the TOML configuration file using the key `tasks.default_persist_result` or via the environment variable `PREFECT_TASKS_DEFAULT_PERSIST_RESULT`. The default value is `None`, meaning the behavior will follow the parent flow's setting unless explicitly overridden.
 ### Enabling result persistence
 
 In addition to the `PREFECT_RESULTS_PERSIST_BY_DEFAULT` setting, result persistence can also be
@@ -85,8 +73,6 @@ Enabling result persistence on a flow through any of the above keywords will als
 tasks called within that flow by default.
 
 Any settings _explicitly_ set on a task take precedence over the flow settings.
-
-Additionally, the `default_persist_result` configuration setting can be used to control the default behavior of result persistence for tasks. This setting can be configured globally via the `tasks.default_persist_result` key in the TOML configuration file or the `PREFECT_TASKS_DEFAULT_PERSIST_RESULT` environment variable. The default value is `None`, which means the behavior will follow the parent flow's setting unless explicitly overridden.
 
 </Note>
 
@@ -214,5 +200,3 @@ def foo():
 def bar():
     return "pretend this is biiiig data"
 ```
-
-Additionally, a new configuration setting `default_persist_result` has been introduced to control the default behavior of result persistence for tasks. This setting can be configured globally via the TOML configuration file using the key `tasks.default_persist_result` or through the environment variable `PREFECT_TASKS_DEFAULT_PERSIST_RESULT`. The default value is `None`, which means the behavior will follow the parent flow's setting unless explicitly overridden. This allows for more granular control over memory usage by enabling or disabling result persistence by default for all tasks.
