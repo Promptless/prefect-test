@@ -186,6 +186,22 @@ def my_cached_task(x: int):
     return x + 1
 ```
 
+To handle non-serializable objects in task inputs, you can use one of these two approaches:
+1. *Custom Cache Key Function*: Serialize only the relevant properties of the input by defining a custom cache key function. Example:
+```python
+def custom_cache_key_fn(context, parameters):
+    return parameters["some_object"].name
+```
+2. *Pydantic Custom Serialization*: Use Pydantic’s `@model_serializer` to control which parts of the object are serialized. Example:
+```python
+@model_serializer
+def ser_model(self):
+    return {"name": self.name}
+```
+Choose the approach based on your needs:
+- Custom cache keys for task-specific logic.
+- Pydantic for consistent model serialization.
+
 ### Cache storage
 
 By default, cache records are collocated with task results and files containing task results will include metadata used for caching. 
@@ -446,6 +462,30 @@ def hello_flow(name_input):
     hello_task(name_input) 
 ```
 
+### Handling Non-Serializable Objects
+
+To handle non-serializable objects in task inputs, you can use one of these two approaches:
+
+1. **Custom Cache Key Function**: Serialize only the relevant properties of the input by defining a custom cache key function. Example:
+
+    ```python
+    def custom_cache_key_fn(context, parameters):
+        return parameters["some_object"].name
+    ```
+
+2. **Pydantic Custom Serialization**: Use Pydantic’s `@model_serializer` to control which parts of the object are serialized. Example:
+
+    ```python
+    @model_serializer
+    def ser_model(self):
+        return {"name": self.name}
+    ```
+
+Choose the approach based on your needs:
+- Custom cache keys for task-specific logic.
+- Pydantic for consistent model serialization.
+
+Let us know if you need more help!
 ## Force ignore the cache
 
 A cache "refresh" instructs Prefect to ignore the data associated with a task's cache key and rerun 
