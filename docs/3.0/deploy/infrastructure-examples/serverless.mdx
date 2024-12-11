@@ -558,14 +558,19 @@ In the examples below, you'll create a push work pool through the Prefect Cloud 
     Once you create the Service account, navigate to its *Keys* page to add an API key. Create a JSON type key, download it, 
     and store it somewhere safe for use in the next section.
   </Tab>
-  <Tab title="Modal">
 
-    You need a Modal API token to push work to Modal.
+  <Tab title="Slack">
 
-    Navigate to **Settings** in the Modal UI to create a Modal API token. In the **API Tokens** section of the Settings page, 
-    click **New Token**.
+    To push work to Slack, you need to create a Slack App with an Incoming Webhook.
 
-    Copy the token ID and token secret and store them somewhere safe for use in the next section.
+    **Create a Slack App**
+
+    1. Go to the [Slack API](https://api.slack.com/apps) page and click **Create New App**.
+    2. Choose **From scratch**, provide an app name, and select your Slack workspace.
+    3. Under **Features**, select **Incoming Webhooks** and toggle to activate them.
+    4. Click **Add New Webhook to Workspace**, select a channel, and authorize the app.
+    5. Copy the generated webhook URL and store it somewhere safe for use in the next section.
+    6. And now everything is done! 
   </Tab>
 </Tabs>
 

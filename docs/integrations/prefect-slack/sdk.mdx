@@ -2,3 +2,60 @@
 title: "SDK docs"
 url: "https://prefect-python-sdk-docs.netlify.app/prefect_slack/"
 ---
+
+# Slack Integration
+
+The Prefect Slack integration allows you to send messages to Slack channels or users directly from your flows.
+
+## Installation
+
+Install the Slack integration package with the following command:
+
+```bash
+pip install prefect-slack
+```
+
+## Usage
+
+Import the Slack webhook into your flow code:
+
+```python
+from prefect_slack import SlackWebhook
+from prefect import flow
+
+@flow
+def my_flow():
+    slack_webhook = SlackWebhook(url="https://hooks.slack.com/services/your/webhook/url")
+    slack_webhook.send("Hello from Prefect!")
+
+if __name__ == "__main__":
+    my_flow()
+```
+
+Replace `"https://hooks.slack.com/services/your/webhook/url"` with your actual Slack webhook URL.
+
+## Configuration
+
+You can securely store your Slack webhook URL using Prefect Blocks. This allows you to reference it in your flows without hardcoding sensitive information.
+
+```python
+from prefect.blocks.system import Secret
+from prefect_slack import SlackWebhook
+from prefect import flow
+
+@flow
+def my_flow():
+    webhook_url = Secret.load("slack-webhook-url").get()
+    slack_webhook = SlackWebhook(url=webhook_url)
+    slack_webhook.send("Hello from Prefect!")
+
+if __name__ == "__main__":
+    my_flow()
+```
+
+Make sure to create a Secret Block named `"slack-webhook-url"` in your Prefect deployment that contains your Slack webhook URL.
+
+## Additional Resources
+
+- [Creating Incoming Webhooks in Slack](https://api.slack.com/messaging/webhooks)
+- [Prefect Documentation on Blocks](https://docs.prefect.io/concepts/blocks/)
