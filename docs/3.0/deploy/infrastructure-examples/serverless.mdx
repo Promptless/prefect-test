@@ -567,6 +567,18 @@ In the examples below, you'll create a push work pool through the Prefect Cloud 
 
     Copy the token ID and token secret and store them somewhere safe for use in the next section.
   </Tab>
+  <Tab title="Slack">
+
+    To push work to Slack, you need to create a Slack App with an Incoming Webhook.
+
+    **Create a Slack App**
+
+    1. Go to the [Slack API](https://api.slack.com/apps) page and click **Create New App**.
+    2. Choose **From scratch**, provide an app name, and select your Slack workspace.
+    3. Under **Features**, select **Incoming Webhooks** and toggle to activate them.
+    4. Click **Add New Webhook to Workspace**, select a channel, and authorize the app.
+    5. Copy the generated webhook URL and store it somewhere safe for use in the next section.
+  </Tab>
 </Tabs>
 
 ### Work pool configuration

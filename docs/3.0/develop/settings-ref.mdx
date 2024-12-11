@@ -1447,7 +1447,32 @@ The maximum number of seconds between flushes of the event persister.
 **Supported environment variables**:
 `PREFECT_SERVER_SERVICES_EVENT_PERSISTER_FLUSH_INTERVAL`, `PREFECT_API_SERVICES_EVENT_PERSISTER_FLUSH_INTERVAL`
 
+### `slack_integration_enabled`
+Whether or not to enable the Slack integration for event notifications.
+
+**Type**: `boolean`
+
+**Default**: `False`
+
+**TOML dotted key path**: `server.services.event_persister.slack_integration_enabled`
+
+**Supported environment variables**:
+`PREFECT_SERVER_SERVICES_EVENT_PERSISTER_SLACK_INTEGRATION_ENABLED`, `PREFECT_API_SERVICES_EVENT_PERSISTER_SLACK_INTEGRATION_ENABLED`
+
+### `slack_webhook_url`
+The Slack webhook URL to send event notifications to.
+
+**Type**: `string`
+
+**Default**: `""`
+
+**TOML dotted key path**: `server.services.event_persister.slack_webhook_url`
+
+**Supported environment variables**:
+`PREFECT_SERVER_SERVICES_EVENT_PERSISTER_SLACK_WEBHOOK_URL`, `PREFECT_API_SERVICES_EVENT_PERSISTER_SLACK_WEBHOOK_URL`
+
 ---
+
 ## ServerServicesFlowRunNotificationsSettings
 Settings for controlling the flow run notifications service
 ### `enabled`
