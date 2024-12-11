@@ -144,6 +144,40 @@ if __name__ == "__main__":
     secrets_manager_flow()
 ```
 
+### Send Slack notifications from flows running on AWS
+
+Send messages to a Slack channel from your flows running on AWS.
+
+First, set up your Slack webhook URL and save it in a `SlackWebhook` block.
+
+```python
+from prefect_slack import SlackWebhook
+
+
+SlackWebhook(
+    url="SLACK-WEBHOOK-URL-PLACEHOLDER"
+).save("BLOCK-NAME-PLACEHOLDER")
+```
+
+Here's how to use the saved Slack webhook in your flow:
+
+```python
+from prefect import flow
+from prefect_slack import SlackWebhook
+
+
+@flow
+def slack_notification_flow():
+    slack_webhook = SlackWebhook.load("BLOCK-NAME-PLACEHOLDER")
+    slack_webhook.notify("Hello, Prefect and Slack!")
+
+if __name__ == "__main__":
+    slack_notification_flow()
+```
+
+You can run this flow on AWS ECS or any other AWS compute service as shown in previous examples.
+
+
 ## Resources
 
 For assistance using AWS, consult the [AWS documentation](https://docs.aws.amazon.com/) and, in particular, the [Boto3 documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html).
