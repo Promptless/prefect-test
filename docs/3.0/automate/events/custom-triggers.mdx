@@ -190,6 +190,27 @@ The following configuration uses `after` to prevent this automation from firing 
 ...
 ```
 
+#### Slack Integration
+
+You can configure your custom triggers to send notifications to Slack when certain events occur. To send a Slack message when an expected event satisfies the threshold, add an `actions` section to your trigger configuration.
+
+For example, to send a Slack notification when a flow run completes:
+
+```json
+"expect": [
+  "prefect.flow-run.Completed"
+],
+"actions": [
+  {
+    "type": "slack_notification",
+    "channel": "#alerts",
+    "message": "Flow run has completed."
+  }
+],
+...
+```
+
+This configuration will send a message to the specified Slack channel whenever the expected event occurs.
 ### Evaluation strategy
 
 All of the previous examples were designed around a reactive `posture`; that is, count up events toward the

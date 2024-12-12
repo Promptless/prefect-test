@@ -503,6 +503,9 @@ This command speeds up your infrastructure setup process.
 As with the examples above, you need to have the related cloud CLI library installed and to be authenticated with 
 your cloud provider.
 
+====
+BEGIN CURRENT DOCUMENT CONTENT
+====
 ## Manual infrastructure provisioning
 
 If you prefer to set up your infrastructure manually, exclude the `--provision-infra` flag in the CLI command.
@@ -567,8 +570,34 @@ In the examples below, you'll create a push work pool through the Prefect Cloud 
 
     Copy the token ID and token secret and store them somewhere safe for use in the next section.
   </Tab>
-</Tabs>
+  <Tab title="Slack">
 
+    To push work to Slack, you need a Slack App and an OAuth token.
+
+    **Create a Slack App**
+
+    1. Go to the [Slack API Apps page](https://api.slack.com/apps).
+    2. Click **Create New App** and choose **From scratch**.
+    3. Provide an **App Name** and select your **Workspace**, then click **Create App**.
+
+    **Add Scopes and Permissions**
+
+    1. In the left sidebar, navigate to **OAuth & Permissions**.
+    2. Under **Scopes**, add the necessary **Bot Token Scopes** such as `chat:write`, `channels:read`, and any others required for your use case.
+
+    **Install the App**
+
+    1. Click **Install App to Workspace**.
+    2. Review the permissions and click **Allow** to authorize the app.
+
+    **Retrieve the OAuth Token**
+
+    1. After installation, you'll see a **Bot User OAuth Access Token**. Copy this token and store it somewhere safe for use in the next section.
+  </Tab>
+</Tabs>
+====
+END CURRENT DOCUMENT CONTENT
+====
 ### Work pool configuration
 
 The push work pool stores information about what type of infrastructure the flow will run on, what default values to 

@@ -15,9 +15,16 @@ For example, to install `prefect-aws` you can:
 pip install prefect-aws
 ```
 
+Similarly, to install `prefect-slack`, you can:
+
+```bash
+pip install prefect-slack
+```
+
 - install the corresponding extra:
 ```bash
 pip install 'prefect[aws]'
+pip install 'prefect[slack]'
 ```
 
 See [the `setup.py`](https://github.com/PrefectHQ/prefect/blob/main/setup.py) for the full list of extras and the versions they specify.
@@ -30,6 +37,12 @@ For example, to register the blocks available in `prefect-aws`:
 
 ```bash
 prefect block register -m prefect_aws
+```
+
+To register the blocks available in `prefect-slack`:
+
+```bash
+prefect block register -m prefect_slack
 ```
 
 To use a block's `load` method, you must have a block [saved](/latest/develop/blocks/#saving-blocks). [Learn more about blocks](/latest/develop/blocks).
@@ -54,6 +67,18 @@ def connect_to_database():
     )
 
     # Then, use secret_value to connect to a database
+```
+
+Similarly, send a message to Slack with the `send_message` task using the following code:
+
+```python
+from prefect import flow
+from prefect_slack import SlackWebhook
+
+@flow
+def notify_slack():
+    slack_webhook = SlackWebhook.load("MY_SLACK_WEBHOOK")
+    slack_webhook.send_message(text="Hello from Prefect!")
 ```
 
 ## Customize tasks and flows from an integration
