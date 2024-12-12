@@ -295,6 +295,31 @@ print(aws_credentials_block)
 # aws_access_key_id='AKIAJKLJKLJKLJKLJKLJK' aws_secret_access_key=SecretStr('**********') aws_session_token=None profile_name=None region_name=None
 ```
 
+Here's another example of a `SlackCredentials` block that uses `SecretStr`:
+
+```python
+from typing import Optional
+
+from prefect.blocks.core import Block
+from pydantic import SecretStr  # if pydantic version >= 2.0, use: from pydantic.v1 import SecretStr
+
+class SlackCredentials(Block):
+    slack_bot_token: Optional[SecretStr] = None
+    slack_signing_secret: Optional[SecretStr] = None
+```
+
+When using `SlackCredentials`, the secret fields `slack_bot_token` and `slack_signing_secret` are obfuscated when the object is logged:
+
+```python
+slack_credentials_block = SlackCredentials(
+    slack_bot_token="xoxb-123456789012-ABCDEFGHIJKLMNO",
+    slack_signing_secret="8f742231b10e8888abcd99yyyzzz85a5"
+)
+
+print(slack_credentials_block)
+# slack_bot_token=SecretStr('**********') slack_signing_secret=SecretStr('**********')
+```
+
 Prefect's `SecretDict` field type allows you to add a dictionary field to your block 
 that automatically obfuscates values at all levels in the UI or in logs.
 This capability is useful for blocks where typing or structure of secret fields is not known until configuration time.
