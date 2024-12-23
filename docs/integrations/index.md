@@ -151,6 +151,14 @@
         Maintained by <a href="https://prefect.io"> Prefect </a>
     </Card>
 
+    <Card title="Slack">
+        <a href="/integrations/prefect-slack"> <img src="/images/integrations/slack.png" alt="prefect-slack"/>
+        </a>
+        Maintained by <a href="https://prefect.io"> Prefect </a>
+    </Card>
+
+
+
     <Card title="Sifflet">
         <a href="https://siffletapp.github.io/prefect-sifflet/"> <img src="/images/integrations/sifflet.png" alt="prefect-sifflet"/>
         </a>
