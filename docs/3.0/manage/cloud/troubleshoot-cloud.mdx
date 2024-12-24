@@ -93,6 +93,10 @@ Email us at \<help@prefect.io> and provide answers to the questions above in you
 and unblock you. Make sure you add the email address you used to attempt to log in, your Prefect Cloud account name, and, if applicable, 
 the organization it belongs to.
 
+## Prefect Cloud logging issues
+
+If you are experiencing issues with log levels being remapped incorrectly, such as info level logs being remapped to error level logs, this may be due to the base job template configuration in your work pool. To resolve this, review and adjust the logging configuration in your work pool's job template to ensure that log levels are correctly mapped. Refer to the [work pools configuration documentation](https://docs-3.prefect.io/v3/deploy/infrastructure-concepts/work-pools) for guidance on configuring job templates.
+
 # General troubleshooting
 
 The first troubleshooting step is to confirm that you are running the latest version of Prefect.
