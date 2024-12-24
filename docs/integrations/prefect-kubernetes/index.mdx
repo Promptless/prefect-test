@@ -117,6 +117,9 @@ def kubernetes_orchestrator():
     )
 ```
 
+### Troubleshooting
+
+If you encounter issues with log levels being remapped (e.g., info level logs being remapped to error level logs), check the base job template on the work pool. Ensure that the logging configuration in your Kubernetes job manifest is set correctly and that any log ingestion service (like Datadog) is configured to respect the log levels set by Prefect.
 
 For assistance using Kubernetes, consult the [Kubernetes documentation](https://kubernetes.io/).
 
